@@ -12,9 +12,9 @@ VECTORS := tests/solutions.txt
 INVALID_STATES := 1234567111111 123456711111111 02345671111111 82345671111111 \
 	12345671111110 12345671111114 1234567111111a 11345671111111 12345671111112
 
-.PHONY: all check prove clean indent
+.PHONY: all check check-iddfs prove clean indent
 
-all: solver mini
+all: solver mini IDDFS_solver
 
 solver: solver.c
 	$(CC) $(CFLAGS) $< -o $@
@@ -22,7 +22,13 @@ solver: solver.c
 mini: mini.c
 	$(CC) $(CFLAGS) $< -o $@
 
-check: solver mini $(VECTORS)
+IDDFS_solver: IDDFS_solver.c
+	$(CC) $(CFLAGS) $< -o $@
+
+check-iddfs: IDDFS_solver $(VECTORS)
+	python3 tests/check_iddfs.py ./IDDFS_solver
+
+check: solver mini $(VECTORS) check-iddfs
 	./solver --self-test
 	@expected=$$(mktemp); actual=$$(mktemp); \
 		trap 'rm -f "$$expected" "$$actual"' 0 1 2 15; \
@@ -94,4 +100,4 @@ endif
 	$(CLANG_FORMAT) -i $(C_SOURCES)
 
 clean:
-	$(RM) solver mini
+	$(RM) solver mini IDDFS_solver

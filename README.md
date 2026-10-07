@@ -42,11 +42,27 @@ make prove   # optional: Frama-C WP proof, needs frama-c and alt-ergo
 ./solver 21345671111111
 ```
 
-`make` builds two binaries. `solver` is the documented one, with contracts, a
+`make` builds three binaries. `solver` is the documented one, with contracts, a
 `--self-test` mode, and diagnostics on stderr. `mini` is a golfed variant that
 solves the same input and prints the same line, kept as a readability contrast;
 it has no `--self-test` and prints nothing on failure, and it trades roughly
 eight times the runtime and three times the memory for its brevity.
+
+`IDDFS_solver` uses iterative deepening DFS instead of building a state table:
+
+```sh
+./IDDFS_solver 21345671111111
+make check-iddfs
+```
+
+It tries depth limits 0 through 11 and stops at the first solution, which has
+the minimum move count. Consecutive turns of the same face are skipped because
+they combine or cancel. Search memory is O(depth), with no heap allocation;
+deep scrambles take longer than with the BFS solver. Equally short solutions
+may differ from the BFS output. Its `--self-test` checks state ranking and move
+inverses; `make check-iddfs` also verifies solutions and optimal move counts
+using an independent model and known BFS distances. The IDDFS check needs
+Python 3.
 
 The 14-digit argument describes the scramble and the printed line is the
 solution. Both formats are explained below.
