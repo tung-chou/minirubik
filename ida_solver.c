@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "pdb.h"
+#include "pdb_data.h"
+
 enum {
     CUBIES = 7,
     PERMUTATIONS = 5040,
@@ -28,18 +31,6 @@ typedef struct {
 static const char *const move_names[MOVES] = {"R",  "R2", "R'", "B", "B2",
                                               "B'", "D",  "D2", "D'"};
 static const uint8_t inverse_move[MOVES] = {2, 1, 0, 5, 4, 3, 8, 7, 6};
-/* Each destination takes a cubie from source[face][destination]. */
-static const uint8_t source[3][CUBIES] = {
-    {1, 4, 2, 0, 3, 5, 6},
-    {0, 1, 2, 4, 5, 6, 3},
-    {0, 2, 5, 3, 1, 4, 6},
-};
-static const uint8_t twist[3][CUBIES] = {
-    {1, 2, 0, 2, 1, 0, 0},
-    {0, 0, 0, 1, 2, 1, 2},
-    {0, 0, 0, 0, 0, 0, 0},
-};
-
 /* The three quarter-turns preserve the fixed front-upper-left corner. */
 /*@ requires face < 3;
     assigns \nothing;
@@ -237,13 +228,19 @@ static int output_failed(void)
     return fflush(stdout) != 0 || ferror(stdout);
 }
 
+static unsigned heuristic(const state_t *state);
+
 static int self_test(void)
 {
     const state_t solved = {{0, 1, 2, 3, 4, 5, 6}, {0}};
     state_t state;
+    if (sizeof pdb_tables != PDB_COUNT * PDB_BYTES || heuristic(&solved) != 0)
+        return 0;
     for (uint8_t move = 0; move < MOVES; ++move) {
         state = solved;
         state = apply_move(state, move);
+        if (heuristic(&state) > 1)
+            return 0;
         state = apply_move(state, inverse_move[move]);
         if (memcmp(&solved, &state, sizeof solved))
             return 0;
@@ -253,52 +250,93 @@ static int self_test(void)
         if (!valid(&state) || rank_state(&state) != rank)
             return 0;
     }
+    for (unsigned pattern = 0; pattern < PDB_COUNT; ++pattern) {
+        pdb_state_t goal = pdb_goal(pattern);
+        uint32_t goal_rank = pdb_rank(&goal);
+        for (uint32_t rank = 0; rank < PDB_STATES; ++rank) {
+            pdb_state_t abstract = pdb_unrank(rank);
+            unsigned distance = pdb_distance(pdb_tables[pattern], rank);
+            if (pdb_rank(&abstract) != rank || distance > MAX_DEPTH ||
+                (distance == 0) != (rank == goal_rank))
+                return 0;
+        }
+    }
     return 1;
 }
 
-/* Return the solution length, or -1 if the depth limit is exhausted.
- * path has room for limit moves. Only the successful prefix is read.
+/* Project by cubie identity: track where each selected cubie is, along
+ * with its current twist. Forgetting other cubies relaxes the goal, so each
+ * PDB distance is a lower bound. Use max, never the sum of overlapping PDBs.
  */
-static int DFS(state_t state, uint8_t limit, uint8_t previous_face,
-               uint8_t *path)
+static unsigned heuristic(const state_t *state)
 {
-    int solved = 1;
-    for (uint8_t i = 0; i < CUBIES; ++i) {
-        if (state.p[i] != i || state.o[i] != 0) {
-            solved = 0;
-            break;
+    uint8_t position[CUBIES];
+    for (uint8_t i = 0; i < CUBIES; ++i)
+        position[state->p[i]] = i;
+    unsigned best = 0;
+    for (unsigned pattern = 0; pattern < PDB_COUNT; ++pattern) {
+        pdb_state_t abstract;
+        for (unsigned i = 0; i < PDB_CORNERS; ++i) {
+            uint8_t at = position[pdb_corners[pattern][i]];
+            abstract.pos[i] = at;
+            abstract.ori[i] = state->o[at];
         }
+        unsigned distance = pdb_distance(pdb_tables[pattern], pdb_rank(&abstract));
+        if (distance > best)
+            best = distance;
     }
-    if (solved)
-        return 0;
-    if (limit == 0)
-        return -1;
+    return best;
+}
 
+enum { SEARCH_FOUND = -1 };
+
+/* Return SEARCH_FOUND, or the smallest f=g+h that exceeded the threshold.
+ * g is the actual search depth. path has room for MAX_DEPTH moves.
+ */
+static int ida_search(state_t state, unsigned g, unsigned bound,
+                      uint8_t previous_face, uint8_t path[MAX_DEPTH],
+                      int *solution_length)
+{
+    unsigned h = heuristic(&state);
+    unsigned f = g + h;
+    if (f > bound)
+        return (int) f;
+    /* Both abstract goals together constrain all seven cubies.
+     */
+    if (h == 0) {
+        *solution_length = (int) g;
+        return SEARCH_FOUND;
+    }
+
+    int next_bound = MAX_DEPTH + 1;
     for (uint8_t face = 0; face < 3; ++face) {
-        /* Two consecutive turns of one face combine into one turn or cancel,
-         * so they cannot occur in a shortest solution.
-         */
+        /* Consecutive turns of one face combine or cancel; skip them. */
         if (face == previous_face)
             continue;
         state_t next = state;
         for (uint8_t turn = 0; turn < 3; ++turn) {
             next = quarter_turn(next, face);
-            int length = DFS(next, (uint8_t) (limit - 1U), face, path + 1);
-            if (length >= 0) {
-                path[0] = (uint8_t) (face * 3U + turn);
-                return length + 1;
-            }
+            path[g] = (uint8_t) (face * 3U + turn);
+            int result = ida_search(next, g + 1U, bound, face, path,
+                                    solution_length);
+            if (result == SEARCH_FOUND)
+                return SEARCH_FOUND;
+            if (result < next_bound)
+                next_bound = result;
         }
     }
-    return -1;
+    return next_bound;
 }
 
 static int solve(state_t state, uint8_t path[MAX_DEPTH])
 {
-    for (uint8_t bound = 0; bound <= MAX_DEPTH; ++bound) {
-        int length = DFS(state, bound, 3, path);
-        if (length >= 0)
+    unsigned bound = heuristic(&state);
+    while (bound <= MAX_DEPTH) {
+        int length = -1;
+        int result = ida_search(state, 0, bound, 3, path, &length);
+        if (result == SEARCH_FOUND)
             return length;
+        bound = (unsigned) result;
     }
     return -1;
 }
@@ -311,7 +349,7 @@ int main(int argc, char **argv)
             fputs("self-test failed\n", stderr);
             return 1;
         }
-        puts("3674160 rank/unrank checks passed; move inverses passed");
+        puts("3674160 rank/unrank checks passed; move inverses and packed PDB checks passed");
         return output_failed();
     }
     if (argc != 2 || !parse_state(argv[1], &state)) {

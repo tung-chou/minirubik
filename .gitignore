@@ -3,4 +3,10 @@
 *.swp
 solver
 mini
+ida_solver
 IDDFS_solver
+generate_pdb
+pdb_a.bin
+pdb_b.bin
+pdb_data.h
+pdb_data.h.tmp

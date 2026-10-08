@@ -1,4 +1,4 @@
-"""Check IDDFS output using corner cycles and independently computed distances."""
+"""Check IDA* output using corner cycles and independently computed distances."""
 
 from collections import deque
 from pathlib import Path
@@ -93,5 +93,5 @@ with open("/dev/full", "w") as full:
     for arg in (encode(SOLVED), "--self-test"):
         assert run(arg, stdout=full).returncode == 1, arg
 
-print(f"IDDFS: {len(distances)} shallow states and {vectors} optimal vectors passed; "
+print(f"IDA*: {len(distances)} shallow states and {vectors} optimal vectors passed; "
       "invalid input, self-test and output errors passed")

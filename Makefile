@@ -3,7 +3,7 @@ CFLAGS ?= -O3 -std=c99 -Wall -Wextra -Wpedantic
 FRAMA_C ?= frama-c
 CLANG_FORMAT := $(shell command -v clang-format-20 2>/dev/null || \
 	command -v clang-format 2>/dev/null)
-C_SOURCES := $(wildcard *.c *.h)
+C_SOURCES := $(filter-out pdb_data.h,$(wildcard *.c *.h))
 SAMPLE_STATE := 21345671111111
 SAMPLE_SOLUTION := B' R' D2 R' B R B' R D2 B R'
 VECTORS := tests/solutions.txt
@@ -12,9 +12,9 @@ VECTORS := tests/solutions.txt
 INVALID_STATES := 1234567111111 123456711111111 02345671111111 82345671111111 \
 	12345671111110 12345671111114 1234567111111a 11345671111111 12345671111112
 
-.PHONY: all check check-iddfs prove clean indent
+.PHONY: all pdb check check-ida check-gates prove clean indent
 
-all: solver mini IDDFS_solver
+all: solver mini ida_solver
 
 solver: solver.c
 	$(CC) $(CFLAGS) $< -o $@
@@ -22,13 +22,25 @@ solver: solver.c
 mini: mini.c
 	$(CC) $(CFLAGS) $< -o $@
 
-IDDFS_solver: IDDFS_solver.c
+generate_pdb: generate_pdb.c pdb.h cube_moves.h
 	$(CC) $(CFLAGS) $< -o $@
 
-check-iddfs: IDDFS_solver $(VECTORS)
-	python3 tests/check_iddfs.py ./IDDFS_solver
+pdb_data.h: generate_pdb
+	./generate_pdb
 
-check: solver mini $(VECTORS) check-iddfs
+pdb: pdb_data.h
+
+ida_solver: ida_solver.c pdb.h cube_moves.h pdb_data.h
+	$(CC) $(CFLAGS) $< -o $@
+
+check-ida: ida_solver $(VECTORS)
+	python3 tests/check_pdb.py
+	python3 tests/check_ida.py ./ida_solver
+
+check-gates:
+	$(MAKE) -C tests check
+
+check: solver mini $(VECTORS) check-ida check-gates
 	./solver --self-test
 	@expected=$$(mktemp); actual=$$(mktemp); \
 		trap 'rm -f "$$expected" "$$actual"' 0 1 2 15; \
@@ -100,4 +112,5 @@ endif
 	$(CLANG_FORMAT) -i $(C_SOURCES)
 
 clean:
-	$(RM) solver mini IDDFS_solver
+	$(RM) solver mini ida_solver generate_pdb
+	$(MAKE) -C tests clean

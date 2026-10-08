@@ -48,21 +48,43 @@ solves the same input and prints the same line, kept as a readability contrast;
 it has no `--self-test` and prints nothing on failure, and it trades roughly
 eight times the runtime and three times the memory for its brevity.
 
-`IDDFS_solver` uses iterative deepening DFS instead of building a state table:
+`ida_solver` uses IDA* with two four-corner pattern databases (PDBs):
 
 ```sh
-./IDDFS_solver 21345671111111
-make check-iddfs
+make ida_solver  # automatically builds and runs the offline PDB generator
+./ida_solver 21345671111111
+make check-ida
 ```
 
-It tries depth limits 0 through 11 and stops at the first solution, which has
-the minimum move count. Consecutive turns of the same face are skipped because
-they combine or cancel. Search memory is O(depth), with no heap allocation;
-deep scrambles take longer than with the BFS solver. Equally short solutions
-may differ from the BFS output. Its `--self-test` checks state ranking and move
-inverses; `make check-iddfs` also verifies solutions and optimal move counts
-using an independent model and known BFS distances. The IDDFS check needs
-Python 3.
+`generate_pdb.c` runs abstract BFS for two sets of tracked cubie identities:
+A = {1,2,3,4}, B = {4,5,6,7} (input numbering). Each abstraction records the
+positions and twists of its four cubies; it has P(7,4) × 3^4 = 68,040 states.
+The partial index is `perm_rank * 81 + ori_rank`. Distances are packed two
+per byte, with even indices in the low nibble and odd indices in the high
+nibble. It generates `pdb_a.bin`, `pdb_b.bin` (34,020 bytes each), and
+`pdb_data.h` for embedding the packed tables in the executable. Both PDBs have
+diameter 8. Build artifacts are ignored by Git and regenerated during a fresh
+build. To regenerate explicitly, run `make generate_pdb` then `./generate_pdb`.
+
+Search uses `g = current depth` and `h = max(PDB_A, PDB_B)`, pruning when
+`g + h` exceeds the current threshold. Forgetting three cubies relaxes the
+goal, so both exact abstract distances are admissible. Their maximum is also
+admissible; adding them would double-count moves. IDA* starts at `h(start)`
+and increases the threshold to the smallest exceeded `g + h`. It stops at the
+first solution and keeps the same consecutive-face pruning and 11-move HTM
+limit. Equally short solutions may differ from the BFS output.
+
+At runtime the two read-only packed tables occupy exactly 68,040 bytes, plus
+O(depth) search stack and path storage. There is no runtime BFS or heap
+allocation, and no dependency on external PDB files or the working directory.
+Its `--self-test` checks state ranking, move inverses, PDB indices and packed
+entries. `make check-ida` uses independent abstract BFS to verify all PDB
+entries and an independent concrete model to check CLI solutions and optimal
+move counts. These checks need Python 3.
+
+For the full-state distance oracle, H1/H2/H3/H4 correctness gates, and
+exhaustive IDA* comparison, see
+[`tests/README.md`](<tests/README.md>).
 
 The 14-digit argument describes the scramble and the printed line is the
 solution. Both formats are explained below.
