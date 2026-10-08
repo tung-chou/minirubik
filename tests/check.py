@@ -46,7 +46,7 @@ assert "TABLE PASS" in result.stdout and "IDA* not run" in result.stdout
 result = run("verify_h1", DATA)
 assert "H1 PASS" in result.stdout and "checked=3674160" in result.stdout
 result = run("verify_h2", DATA)
-assert "H2 PASS: tables=3 failures=0" in result.stdout
+assert "H2 PASS: tables=5 failures=0" in result.stdout
 assert result.stdout.count("populated=68040/68040 max=8 expected_max=8") == 2
 assert "solved_rank=35235 solved_value=0" in result.stdout
 result = run("verify_h4")

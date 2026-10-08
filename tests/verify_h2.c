@@ -1,12 +1,58 @@
 #include "gate_common.h"
 
+static unsigned check_search_tables(void)
+{
+    unsigned failures = 0, maximum = 0, expected_maximum = 0;
+    for (unsigned face = 0; face < 3; ++face) {
+        for (unsigned p = 0; p < PDB_PERMUTATIONS; ++p) {
+            pdb_state_t abstract = pdb_unrank(p * PDB_ORIENTATIONS);
+            state_t state = reference_complete(&abstract, 0);
+            state = reference_move(state, (uint8_t) (face * 3U));
+            abstract = reference_project(&state, 0);
+            uint32_t rank = pdb_rank(&abstract);
+            unsigned expected = rank / PDB_ORIENTATIONS |
+                                ((rank % PDB_ORIENTATIONS) << 10U);
+            unsigned actual = coordinate_turn[face][p];
+            failures += actual != expected;
+            if (actual > maximum)
+                maximum = actual;
+            if (expected > expected_maximum)
+                expected_maximum = expected;
+        }
+    }
+    printf("H2 coordinate_turn %s: populated=2520/2520 max=%u expected_max=%u"
+           " mismatches=%u; solved rows A=0/B=435 included\n",
+           failures ? "FAIL" : "PASS", maximum, expected_maximum, failures);
+    unsigned coordinate_failures = failures;
+    failures = maximum = expected_maximum = 0;
+    for (unsigned delta = 0; delta < PDB_ORIENTATIONS; ++delta) {
+        pdb_state_t d = pdb_unrank(delta);
+        for (unsigned o = 0; o < PDB_ORIENTATIONS; ++o) {
+            pdb_state_t state = pdb_unrank(o);
+            unsigned expected = 0;
+            for (unsigned i = 0; i < PDB_CORNERS; ++i)
+                expected = expected * 3U + (state.ori[i] + d.ori[i]) % 3U;
+            unsigned actual = orientation_add[delta][o];
+            failures += actual != expected;
+            if (actual > maximum)
+                maximum = actual;
+            if (expected > expected_maximum)
+                expected_maximum = expected;
+        }
+    }
+    printf("H2 orientation_add %s: populated=6561/6561 max=%u expected_max=%u"
+           " solved_entry=%u mismatches=%u\n", failures ? "FAIL" : "PASS",
+           maximum, expected_maximum, orientation_add[0][0], failures);
+    return (coordinate_failures != 0) + (failures != 0);
+}
+
 int main(int argc, char **argv)
 {
     if (argc > 2) {
         fprintf(stderr, "usage: %s [exact_distances.bin]\n", argv[0]);
         return 2;
     }
-    unsigned failures = 0;
+    unsigned failures = check_search_tables();
     for (unsigned pattern = 0; pattern < PDB_COUNT; ++pattern) {
         uint8_t *reference = reference_pdb(pattern);
         if (!reference)
@@ -53,7 +99,7 @@ int main(int argc, char **argv)
            (unsigned) STATES, (unsigned) STATES, maximum,
            (unsigned) MAX_DEPTH, distance[0]);
     free(distance);
-    printf("H2 %s: tables=3 failures=%u\n", failures ? "FAIL" : "PASS", failures);
+    printf("H2 %s: tables=5 failures=%u\n", failures ? "FAIL" : "PASS", failures);
     int failed = output_failed();
     return failures || failed ? 1 : 0;
 }

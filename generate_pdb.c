@@ -108,6 +108,44 @@ static int write_header(const uint8_t packed[PDB_COUNT][PDB_BYTES])
         }
         fputs("    },\n", file);
     }
+    /* A search coordinate packs permutation in bits 0..9, orientation in
+     * bits 10..16. For each permutation/face store the new permutation and
+     * the twist delta. Both patterns use the same abstract transition rules.
+     */
+    fputs("};\nstatic const uint32_t coordinate_turn[3][840] = {\n", file);
+    for (unsigned face = 0; face < 3; ++face) {
+        fputs("    {\n", file);
+        for (unsigned p = 0; p < PDB_PERMUTATIONS; ++p) {
+            pdb_state_t state = pdb_unrank(p * PDB_ORIENTATIONS);
+            state = pdb_quarter_turn(state, face);
+            uint32_t rank = pdb_rank(&state);
+            uint32_t entry = rank / PDB_ORIENTATIONS |
+                             ((rank % PDB_ORIENTATIONS) << 10U);
+            if (p % 8U == 0)
+                fputs("        ", file);
+            fprintf(file, "%u,", (unsigned) entry);
+            fputc(p % 8U == 7U ? '\n' : ' ', file);
+        }
+        fputs("    },\n", file);
+    }
+    fputs("};\nstatic const uint8_t orientation_add[81][81] = {\n", file);
+    for (unsigned delta = 0; delta < PDB_ORIENTATIONS; ++delta) {
+        pdb_state_t d = pdb_unrank(delta);
+        fputs("    {\n        ", file);
+        for (unsigned o = 0; o < PDB_ORIENTATIONS; ++o) {
+            pdb_state_t state = pdb_unrank(o);
+            for (unsigned i = 0; i < PDB_CORNERS; ++i)
+                state.ori[i] = (uint8_t) ((state.ori[i] + d.ori[i]) % 3U);
+            fprintf(file, "%u,", (unsigned) pdb_rank(&state));
+            if (o + 1U == PDB_ORIENTATIONS)
+                fputc('\n', file);
+            else if (o % 16U == 15U)
+                fputs("\n        ", file);
+            else
+                fputc(' ', file);
+        }
+        fputs("    },\n", file);
+    }
     fputs("};\n#endif\n", file);
     int ok = !ferror(file);
     if (fclose(file) != 0)
@@ -143,6 +181,6 @@ int main(int argc, char **argv)
     free(packed);
     if (!ok)
         return 1;
-    puts("Wrote pdb_a.bin, pdb_b.bin and pdb_data.h; runtime PDB bytes: 68040");
+    puts("Wrote pdb_a.bin, pdb_b.bin and pdb_data.h; PDB bytes: 68040; transition bytes: 16641");
     return fflush(stdout) != 0 || ferror(stdout);
 }

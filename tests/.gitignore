@@ -5,3 +5,6 @@
 /verify_h4
 /exact_distances.bin
 /ida_verification.txt
+/profile_search
+/rv32_report/
+/__pycache__/

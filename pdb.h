@@ -22,7 +22,11 @@ typedef struct {
     uint8_t pos[PDB_CORNERS], ori[PDB_CORNERS];
 } pdb_state_t;
 
-static inline uint32_t pdb_rank(const pdb_state_t *s)
+typedef struct {
+    uint32_t permutation, orientation;
+} pdb_ranks_t;
+
+static inline pdb_ranks_t pdb_rank_parts(const pdb_state_t *s)
 {
     uint32_t p0 = s->pos[0];
     uint32_t p1 = s->pos[1];
@@ -49,8 +53,20 @@ static inline uint32_t pdb_rank(const pdb_state_t *s)
     ori = (ori << 1) + ori + o2;
     ori = (ori << 1) + ori + o3;
 
-    /* perm * 81 + ori */
-    return (perm << 6) + (perm << 4) + perm + ori;
+    pdb_ranks_t result = {perm, ori};
+    return result;
+}
+
+static inline uint32_t pdb_rank(const pdb_state_t *s)
+{
+    pdb_ranks_t r = pdb_rank_parts(s);
+    return (r.permutation << 6) + (r.permutation << 4) + r.permutation + r.orientation;
+}
+
+static inline uint32_t pdb_coordinate(const pdb_state_t *s)
+{
+    pdb_ranks_t r = pdb_rank_parts(s);
+    return r.permutation | (r.orientation << 10U);
 }
 
 static inline pdb_state_t pdb_unrank(uint32_t rank)

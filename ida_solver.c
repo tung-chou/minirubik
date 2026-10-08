@@ -1,6 +1,8 @@
 #include <stdint.h>
+#ifndef MINIRUBIK_CORE_ONLY
 #include <stdio.h>
 #include <string.h>
+#endif
 
 #include "pdb.h"
 #include "pdb_data.h"
@@ -18,6 +20,9 @@ enum {
 typedef struct {
     uint8_t p[CUBIES], o[CUBIES];
 } state_t;
+
+#ifndef MINIRUBIK_CORE_ONLY
+static unsigned heuristic(const state_t *state);
 
 static const char *const move_names[MOVES] = {"R",  "R2", "R'", "B", "B2",
                                               "B'", "D",  "D2", "D'"};
@@ -124,8 +129,6 @@ static int output_failed(void)
     return fflush(stdout) != 0 || ferror(stdout);
 }
 
-static unsigned heuristic(const state_t *state);
-
 static int self_test(void)
 {
     const state_t solved = {{0, 1, 2, 3, 4, 5, 6}, {0}};
@@ -159,84 +162,152 @@ static int self_test(void)
     }
     return 1;
 }
+#endif
 
-/* Project by cubie identity: track where each selected cubie is, along
- * with its current twist. Forgetting other cubies relaxes the goal, so each
- * PDB distance is a lower bound. Use max, never the sum of overlapping PDBs.
+/* Search coordinates keep four cubies' permutation and orientation ranks
+ * in one RV32 register each. Full-state projection happens once per solve.
  */
-static unsigned heuristic(const state_t *state)
+typedef struct {
+    uint32_t a, b;
+} search_state_t;
+
+static search_state_t search_coordinates(const state_t *state)
 {
     uint8_t position[CUBIES];
-    for (uint8_t i = 0; i < CUBIES; ++i)
-        position[state->p[i]] = i;
-    unsigned best = 0;
+    for (unsigned i = 0; i < CUBIES; ++i)
+        position[state->p[i]] = (uint8_t) i;
+    uint32_t coordinate[PDB_COUNT];
     for (unsigned pattern = 0; pattern < PDB_COUNT; ++pattern) {
         pdb_state_t abstract;
         for (unsigned i = 0; i < PDB_CORNERS; ++i) {
-            uint8_t at = position[pdb_corners[pattern][i]];
-            abstract.pos[i] = at;
+            unsigned at = position[pdb_corners[pattern][i]];
+            abstract.pos[i] = (uint8_t) at;
             abstract.ori[i] = state->o[at];
         }
-        unsigned distance = pdb_distance(pdb_tables[pattern], pdb_rank(&abstract));
-        if (distance > best)
-            best = distance;
+        coordinate[pattern] = pdb_coordinate(&abstract);
     }
-    return best;
+    search_state_t result = {coordinate[0], coordinate[1]};
+    return result;
 }
 
-enum { SEARCH_FOUND = -1 };
-
-/* Return SEARCH_FOUND, or the smallest f=g+h that exceeded the threshold.
- * g is the actual search depth. path has room for MAX_DEPTH moves.
- */
-static int ida_search(state_t state, unsigned g, unsigned bound,
-                      uint8_t previous_face, uint8_t path[MAX_DEPTH],
-                      int *solution_length)
+static inline unsigned coordinate_distance(unsigned pattern, uint32_t coordinate)
 {
-    unsigned h = heuristic(&state);
-    unsigned f = g + h;
-    if (f > bound)
-        return (int) f;
-    /* Both abstract goals together constrain all seven cubies.
-     */
-    if (h == 0) {
-        *solution_length = (int) g;
-        return SEARCH_FOUND;
-    }
+    uint32_t p = coordinate & 1023U;
+    uint32_t index = (p << 6U) + (p << 4U) + p + (coordinate >> 10U);
+    return pdb_distance(pdb_tables[pattern], index);
+}
 
-    int next_bound = MAX_DEPTH + 1;
-    for (uint8_t face = 0; face < 3; ++face) {
-        /* Consecutive turns of one face combine or cancel; skip them. */
-        if (face == previous_face)
+static inline uint32_t turn_coordinate(uint32_t coordinate, unsigned face)
+{
+    uint32_t transition = coordinate_turn[face][coordinate & 1023U];
+    unsigned orientation = orientation_add[transition >> 10U][coordinate >> 10U];
+    return (transition & 1023U) | (orientation << 10U);
+}
+
+#ifndef MINIRUBIK_CORE_ONLY
+static unsigned heuristic(const state_t *state)
+{
+    search_state_t coordinates = search_coordinates(state);
+    unsigned a = coordinate_distance(0, coordinates.a);
+    unsigned b = coordinate_distance(1, coordinates.b);
+    return a > b ? a : b;
+}
+#endif
+
+/* Optional host operation counters; no counter instructions in normal/RV32 builds. */
+#ifndef IDA_VISIT
+#define IDA_VISIT() ((void) 0)
+#endif
+#ifndef IDA_EXPAND
+#define IDA_EXPAND() ((void) 0)
+#endif
+
+/* Suspended ancestors only. The current node stays in scalar variables. */
+typedef struct {
+    uint32_t a, b;
+    unsigned face, turn;
+} search_frame_t;
+
+/* Iterative depth-first traversal for one IDA* threshold. A non-goal child
+ * fits only when depth + 1 + h <= bound <= MAX_DEPTH, so at most
+ * MAX_DEPTH - 1 ancestors need saving. No heap or recursive calls.
+ */
+static int ida_search(uint32_t a, uint32_t b, unsigned bound, uint8_t *path)
+{
+    search_frame_t stack[MAX_DEPTH - 1];
+    const search_state_t root = {a, b};
+    unsigned depth = 0, face = 0, turn = 0, previous_face = 3;
+    unsigned next_bound = MAX_DEPTH + 1U;
+    IDA_EXPAND();
+    for (;;) {
+        if (face == 3) {
+            if (depth == 0)
+                return -(int) next_bound;
+            const search_frame_t *parent = &stack[--depth];
+            a = parent->a;
+            b = parent->b;
+            face = parent->face;
+            turn = parent->turn;
+            previous_face = depth ? stack[depth - 1U].face : 3;
             continue;
-        state_t next = state;
-        for (uint8_t turn = 0; turn < 3; ++turn) {
-            next = quarter_turn(next, face);
-            path[g] = (uint8_t) (face * 3U + turn);
-            int result = ida_search(next, g + 1U, bound, face, path,
-                                    solution_length);
-            if (result == SEARCH_FOUND)
-                return SEARCH_FOUND;
-            if (result < next_bound)
-                next_bound = result;
         }
+        if (face == previous_face) {
+            ++face;
+            continue;
+        }
+        if (turn == 3) {
+            ++face;
+            turn = 0;
+            a = depth ? stack[depth - 1U].a : root.a;
+            b = depth ? stack[depth - 1U].b : root.b;
+            continue;
+        }
+        a = turn_coordinate(a, face);
+        b = turn_coordinate(b, face);
+        ++turn;
+        IDA_VISIT();
+        unsigned ha = coordinate_distance(0, a);
+        unsigned hb = coordinate_distance(1, b);
+        unsigned h = ha > hb ? ha : hb;
+        unsigned required = depth + 1U + h;
+        if (required > bound) {
+            if (required < next_bound)
+                next_bound = required;
+            continue;
+        }
+        if (h == 0) {
+            for (unsigned i = 0; i < depth; ++i)
+                path[i] = (uint8_t) (stack[i].face * 3U + stack[i].turn - 1U);
+            path[depth] = (uint8_t) (face * 3U + turn - 1U);
+            return (int) (depth + 1U);
+        }
+        stack[depth] = (search_frame_t) {a, b, face, turn};
+        ++depth;
+        previous_face = face;
+        face = turn = 0;
+        IDA_EXPAND();
     }
-    return next_bound;
 }
 
 static int solve(state_t state, uint8_t path[MAX_DEPTH])
 {
-    unsigned bound = heuristic(&state);
+    search_state_t coordinates = search_coordinates(&state);
+    unsigned ha = coordinate_distance(0, coordinates.a);
+    unsigned hb = coordinate_distance(1, coordinates.b);
+    unsigned bound = ha > hb ? ha : hb;
+    if (bound == 0)
+        return 0;
     while (bound <= MAX_DEPTH) {
-        int length = -1;
-        int result = ida_search(state, 0, bound, 3, path, &length);
-        if (result == SEARCH_FOUND)
+        IDA_VISIT();
+        int length = ida_search(coordinates.a, coordinates.b, bound, path);
+        if (length >= 0)
             return length;
-        bound = (unsigned) result;
+        bound = (unsigned) -length;
     }
     return -1;
 }
 
+#ifndef MINIRUBIK_CORE_ONLY
 int main(int argc, char **argv)
 {
     state_t state;
@@ -268,3 +339,5 @@ int main(int argc, char **argv)
     putchar('\n');
     return output_failed();
 }
+
+#endif

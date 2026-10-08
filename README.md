@@ -74,9 +74,21 @@ and increases the threshold to the smallest exceeded `g + h`. It stops at the
 first solution and keeps the same consecutive-face pruning and 11-move HTM
 limit. Equally short solutions may differ from the BFS output.
 
-At runtime the two read-only packed tables occupy exactly 68,040 bytes, plus
-O(depth) search stack and path storage. There is no runtime BFS or heap
-allocation, and no dependency on external PDB files or the working directory.
+Search carries two 32-bit abstract coordinates instead of copying the full
+cube. Projection and partial ranking happen once per input. The offline
+generator also builds a shared `coordinate_turn[3][840]` table (10,080 bytes)
+and `orientation_add[81][81]` table (6,561 bytes). Each candidate needs two
+permutation/delta loads, two orientation loads, and two packed distance loads.
+There is no division or remainder in the search. It checks the child's
+heuristic before descent. Search uses a loop and a fixed array of ten
+16-byte ancestor records, with no recursion. The current node stays in scalar
+variables; only accepted non-goal children save their parent's state. Once a
+goal is found, search copies the successful moves to the output path.
+
+The two PDBs and shared transition tables occupy 84,681 bytes, plus alignment
+and path storage. The explicit ancestor stack uses 160 bytes of automatic
+storage. There is no runtime BFS or heap allocation, and no dependency on
+external PDB files or the working directory.
 Its `--self-test` checks state ranking, move inverses, PDB indices and packed
 entries. `make check-ida` uses independent abstract BFS to verify all PDB
 entries and an independent concrete model to check CLI solutions and optimal
@@ -85,6 +97,11 @@ move counts. These checks need Python 3.
 For the full-state distance oracle, H1/H2/H3/H4 correctness gates, and
 exhaustive IDA* comparison, see
 [`tests/README.md`](<tests/README.md>).
+That document also describes the freestanding RV32I build, static-data check,
+instruction-bound analysis, and pinned Ripes measurement runner. The current
+RV32I build uses 84,709 bytes of static data. Its conservative instruction
+bound for all 2,644 distance-11 states is 28,942,094, below 50,000,000.
+This is an analyzed bound; a complete Ripes measurement report is still pending.
 
 The 14-digit argument describes the scramble and the printed line is the
 solution. Both formats are explained below.
