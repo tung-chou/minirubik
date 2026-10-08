@@ -22,18 +22,35 @@ typedef struct {
     uint8_t pos[PDB_CORNERS], ori[PDB_CORNERS];
 } pdb_state_t;
 
-static inline uint32_t pdb_rank(const pdb_state_t *state)
+static inline uint32_t pdb_rank(const pdb_state_t *s)
 {
-    uint32_t permutation = 0, orientation = 0;
-    for (unsigned i = 0; i < PDB_CORNERS; ++i) {
-        unsigned digit = state->pos[i];
-        for (unsigned j = 0; j < i; ++j)
-            if (state->pos[j] < state->pos[i])
-                --digit;
-        permutation = permutation * (7U - i) + digit;
-        orientation = orientation * 3U + state->ori[i];
-    }
-    return permutation * PDB_ORIENTATIONS + orientation;
+    uint32_t p0 = s->pos[0];
+    uint32_t p1 = s->pos[1];
+    uint32_t p2 = s->pos[2];
+    uint32_t p3 = s->pos[3];
+
+    uint32_t d0 = p0;
+    uint32_t d1 = p1 - (p0 < p1);
+    uint32_t d2 = p2 - (p0 < p2) - (p1 < p2);
+    uint32_t d3 = p3 - (p0 < p3) - (p1 < p3) - (p2 < p3);
+
+    /* ((d0 * 6 + d1) * 5 + d2) * 4 + d3 */
+    uint32_t perm = (d0 << 2) + (d0 << 1) + d1;
+    perm = (perm << 2) + perm + d2;
+    perm = (perm << 2) + d3;
+
+    uint32_t o0 = s->ori[0];
+    uint32_t o1 = s->ori[1];
+    uint32_t o2 = s->ori[2];
+    uint32_t o3 = s->ori[3];
+
+    /* Base-3 orientation rank */
+    uint32_t ori = (o0 << 1) + o0 + o1;
+    ori = (ori << 1) + ori + o2;
+    ori = (ori << 1) + ori + o3;
+
+    /* perm * 81 + ori */
+    return (perm << 6) + (perm << 4) + perm + ori;
 }
 
 static inline pdb_state_t pdb_unrank(uint32_t rank)

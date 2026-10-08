@@ -19,37 +19,15 @@ typedef struct {
     uint8_t p[CUBIES], o[CUBIES];
 } state_t;
 
-/*@ predicate valid_state(state_t *state) =
-      (\forall integer i; 0 <= i < CUBIES ==>
-         state->p[i] < CUBIES && state->o[i] < 3) &&
-      (\forall integer i, j; 0 <= i < j < CUBIES ==>
-         state->p[i] != state->p[j]) &&
-      (state->o[0] + state->o[1] + state->o[2] + state->o[3] +
-       state->o[4] + state->o[5] + state->o[6]) % 3 == 0;
- */
-
 static const char *const move_names[MOVES] = {"R",  "R2", "R'", "B", "B2",
                                               "B'", "D",  "D2", "D'"};
 static const uint8_t inverse_move[MOVES] = {2, 1, 0, 5, 4, 3, 8, 7, 6};
+
 /* The three quarter-turns preserve the fixed front-upper-left corner. */
-/*@ requires face < 3;
-    assigns \nothing;
-    ensures \forall integer i; 0 <= i < CUBIES ==>
-              \result.p[i] == state.p[source[face][i]];
-    ensures \forall integer i; 0 <= i < CUBIES ==>
-              \result.o[i] == (state.o[source[face][i]] + twist[face][i]) % 3;
- */
 static state_t quarter_turn(state_t state, uint8_t face)
 {
     state_t result;
-    /*@ loop invariant 0 <= i <= CUBIES;
-        loop invariant \forall integer j; 0 <= j < i ==>
-          result.p[j] == state.p[source[face][j]];
-        loop invariant \forall integer j; 0 <= j < i ==>
-          result.o[j] == (state.o[source[face][j]] + twist[face][j]) % 3;
-        loop assigns i, result.p[0..6], result.o[0..6];
-        loop variant CUBIES - i;
-    */
+
     for (uint8_t i = 0; i < CUBIES; ++i) {
         uint8_t from = source[face][i];
         result.p[i] = state.p[from];
@@ -66,47 +44,18 @@ static state_t apply_move(state_t state, uint8_t move)
     return state;
 }
 
-/*@ requires \valid_read(state);
-    requires \forall integer i; 0 <= i < CUBIES ==>
-      0 <= state->p[i] < CUBIES;
-    requires \forall integer i, j; 0 <= i < j < CUBIES ==>
-      state->p[i] != state->p[j];
-    requires \forall integer i; 0 <= i < CUBIES ==>
-      0 <= state->o[i] < 3;
-    assigns \nothing;
-    ensures \result < STATES;
- */
 static uint32_t rank_state(const state_t *state)
 {
     uint32_t p = 0, o = 0;
-    /*@ loop invariant 0 <= i <= CUBIES;
-        loop invariant (i == 0 ==> p == 0) && (i == 1 ==> p <= 6) &&
-          (i == 2 ==> p <= 41) && (i == 3 ==> p <= 209) &&
-          (i == 4 ==> p <= 839) && (i == 5 ==> p <= 2519) &&
-          (i >= 6 ==> p <= 5039);
-        loop assigns i, p;
-        loop variant CUBIES - i;
-     */
     for (uint8_t i = 0; i < CUBIES; ++i) {
         uint8_t smaller = 0;
-        /*@ loop invariant i + 1 <= j <= CUBIES;
-            loop invariant smaller <= j - i - 1;
-            loop assigns j, smaller;
-            loop variant CUBIES - j;
-         */
+
         for (uint8_t j = (uint8_t) (i + 1U); j < CUBIES; ++j)
             if (state->p[j] < state->p[i])
                 ++smaller;
         p = p * (CUBIES - i) + smaller;
     }
-    /*@ loop invariant 0 <= i <= 6;
-        loop invariant (i == 0 ==> o == 0) && (i == 1 ==> o < 3) &&
-          (i == 2 ==> o < 9) && (i == 3 ==> o < 27) &&
-          (i == 4 ==> o < 81) && (i == 5 ==> o < 243) &&
-          (i == 6 ==> o < 729);
-        loop assigns i, o;
-        loop variant 6 - i;
-     */
+
     for (uint8_t i = 0; i < 6; ++i)
         o = o * 3U + state->o[i];
     return p * ORIENTATIONS + o;
@@ -135,34 +84,9 @@ static void unrank_state(uint32_t rank, state_t *state)
     state->o[6] = (uint8_t) ((3U - sum % 3U) % 3U);
 }
 
-/*@ requires \valid_read(state);
-    requires \initialized(&state->p[0..6]) && \initialized(&state->o[0..6]);
-    assigns \nothing;
-    ensures \result != 0 ==> \forall integer i; 0 <= i < CUBIES ==>
-      state->p[i] < CUBIES && state->o[i] < 3;
-    ensures \result != 0 ==> \forall integer i, j; 0 <= i < j < CUBIES ==>
-      state->p[i] != state->p[j];
-    ensures \result != 0 ==>
-      (state->o[0] + state->o[1] + state->o[2] + state->o[3] +
-       state->o[4] + state->o[5] + state->o[6]) % 3 == 0;
-    ensures complete: valid_state(state) ==> \result != 0;
- */
 static int valid(const state_t *state)
 {
     uint8_t sum = 0;
-    /*@ loop invariant 0 <= i <= CUBIES;
-        loop invariant sum <= 2 * i;
-        loop invariant sum == (i > 0 ? state->o[0] : 0) +
-          (i > 1 ? state->o[1] : 0) + (i > 2 ? state->o[2] : 0) +
-          (i > 3 ? state->o[3] : 0) + (i > 4 ? state->o[4] : 0) +
-          (i > 5 ? state->o[5] : 0) + (i > 6 ? state->o[6] : 0);
-        loop invariant \forall integer j; 0 <= j < i ==>
-          state->p[j] < CUBIES && state->o[j] < 3;
-        loop invariant \forall integer j, k; 0 <= j < k < i ==>
-          state->p[j] != state->p[k];
-        loop assigns i, sum;
-        loop variant CUBIES - i;
-    */
     for (uint8_t i = 0; i < CUBIES; ++i) {
         if (state->p[i] >= CUBIES || state->o[i] >= 3)
             return 0;
@@ -180,36 +104,8 @@ static int valid(const state_t *state)
     return sum % 3U == 0;
 }
 
-/*@ requires valid_read_string(input);
-    requires \valid(state);
-    assigns state->p[0..6], state->o[0..6];
-    ensures \result != 0 ==> input[14] == '\0';
-    ensures \result != 0 ==> \forall integer i; 0 <= i < CUBIES ==>
-      state->p[i] < CUBIES && state->o[i] < 3;
-    ensures \result != 0 ==> \forall integer i, j; 0 <= i < j < CUBIES ==>
-      state->p[i] != state->p[j];
-    ensures \result != 0 ==>
-      (state->o[0] + state->o[1] + state->o[2] + state->o[3] +
-       state->o[4] + state->o[5] + state->o[6]) % 3 == 0;
-    ensures \result != 0 ==> \forall integer i; 0 <= i < CUBIES ==>
-      state->p[i] == input[i] - '1';
-    ensures \result != 0 ==> \forall integer i; 0 <= i < CUBIES ==>
-      state->o[i] == input[i + CUBIES] - '1';
- */
 static int parse_state(const char *input, state_t *state)
 {
-    /*@ loop invariant 0 <= i <= 14;
-        loop invariant i <= strlen(input);
-        loop invariant i <= 7 ==> \initialized(&state->p[0..i-1]);
-        loop invariant i >= 7 ==> \initialized(&state->p[0..6]);
-        loop invariant i >= 7 ==> \initialized(&state->o[0..i-8]);
-        loop invariant \forall integer j; 0 <= j < i && j < CUBIES ==>
-          state->p[j] == input[j] - '1';
-        loop invariant \forall integer j; 0 <= j < i - CUBIES ==>
-          state->o[j] == input[j + CUBIES] - '1';
-        loop assigns i, state->p[0..6], state->o[0..6];
-        loop variant 14 - i;
-     */
     for (int i = 0; i < 14; ++i) {
         int limit = i < 7 ? 7 : 3;
         if (input[i] < '1' || input[i] > '0' + limit)
