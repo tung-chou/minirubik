@@ -12,10 +12,16 @@ typedef struct {
 } asm_coordinate_pair_t;
 
 /* text must be readable and NUL-terminated; path holds eleven writable bytes.
- * Returns 0..11, -2 for invalid input, or -1 for search failure.
+ * Returns a verified length 0..11, -2 for invalid input, -1 for search failure,
+ * or -3 if concrete solution replay fails.
  */
 int asm_solve_text(const char *text, uint8_t path[ASM_MAX_DEPTH]);
 int asm_parse_state(const char *text, asm_state_t *state);
+
+/* Replay a path on a copy of a valid state; return 1 iff the result is solved.
+ * Length must be 0..11, move IDs 0..8. Invalid length/IDs return 0.
+ */
+int asm_verify_solution(const asm_state_t *state, const uint8_t *path, unsigned length);
 
 /* The following entries require a valid normalized state / abstract coordinate.
  * Cubies are 0..6, twists 0..2, and the twist sum must be divisible by three.

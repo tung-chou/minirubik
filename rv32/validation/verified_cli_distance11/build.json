@@ -1,0 +1,61 @@
+{
+  "compiler": "riscv64-unknown-elf-gcc (13.2.0-11ubuntu1+12) 13.2.0",
+  "build_command": [
+    "make",
+    "-C",
+    "rv32",
+    "all",
+    "RV32_CC=/tmp/minirubik-toolchain/usr/bin/riscv64-unknown-elf-gcc"
+  ],
+  "link_inputs": [
+    "rv32/solver.S",
+    "rv32/start.S",
+    "rv32/build/tables.S"
+  ],
+  "assembly_flags": [
+    "-march=rv32i",
+    "-mabi=ilp32",
+    "-mno-relax",
+    "-msmall-data-limit=0",
+    "-nostdlib",
+    "-Wl,--no-relax",
+    "-Wl,-T,../tests/rv32.ld",
+    "-DASM_REMOVE_LEAF_RA",
+    "-DASM_CACHE_FACE_ROW",
+    "-DASM_PRINT"
+  ],
+  "renderer_linked": false,
+  "in_program_replay_linked": true,
+  "elf_sha256": "c05bf167c2b0006a501e085ca39e246256b68b23ed11815f467538c8bc1913ad",
+  "inspection": {
+    "all_linked_instructions": "RV32I",
+    "exported_table_bytes_checked": 84681,
+    "static_sections": {
+      ".rodata": 84825,
+      ".data": 32,
+      ".bss": 11
+    },
+    "static_bytes": 84868,
+    "text_bytes": 2176
+  },
+  "normalized_core_unchanged": {
+    "byte_identical": true,
+    "elf_sha256": "053fe488db11c57d0cad845700309a3dde2695c3866410daac67263998ce5407"
+  },
+  "verification_gate_build_command": [
+    "/tmp/minirubik-toolchain/usr/bin/riscv64-unknown-elf-gcc",
+    "-march=rv32i",
+    "-mabi=ilp32",
+    "-mno-relax",
+    "-msmall-data-limit=0",
+    "-nostdlib",
+    "-Wl,--no-relax",
+    "-Wl,--gc-sections",
+    "-Wl,-T,tests/rv32.ld",
+    "rv32/verification_gate.S",
+    "rv32/solver.S",
+    "rv32/build/tables.S",
+    "-o",
+    "rv32/build/verification_gate.elf"
+  ]
+}

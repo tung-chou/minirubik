@@ -1,20 +1,21 @@
 # Stage 4 requirements audit — 2026-10-08
 
-**The listed requirements are not all satisfied.** This audit reuses existing
-execution records; no solver simulations, exhaustive gates, or benchmarks were
-rerun. The current comparison sources, oracle, and all four benchmark ELFs match
-the SHA-256 hashes in both archived processor summaries. The current text-entry
-ELF also matches the optimized ISS correctness record.
+**Mandatory correctness, T5–T7 execution, and the supplied grading budgets now
+pass.** The code-size win remains unsatisfied and deferred at the user's
+request. The current verified text-entry ELF has new source/ELF hashes and
+separate records. A rebuilt normalized assembly core is byte-identical to its
+archived benchmark ELF; original GCC comparison configuration and evidence,
+and the pre-verification full CLI archive, remain unchanged.
 
 ## T5–T7
 
 | Requirement | Status | Evidence and scope |
 | --- | --- | --- |
-| T5: returned paths reach solved | PASS for all recorded successful cases | The host runners independently replay every actual returned path. The final core comparison covers 2,660 inputs across four variants, including all 2,644 distance-11 states, with zero failures. This is tested assembly coverage, not an exhaustive assembly run over all 3,674,160 states. |
+| T5: returned paths reach solved | PASS for all recorded successful cases | The final text wrapper concretely replays each solution and checks the exact solved cube. All 2,644 hard states pass both target and independent host replay; existing 404-case regression also passes. This is tested coverage, not an exhaustive assembly run over all 3,674,160 states. |
 | T6: `21345671111111` has an optimal 11-move result | PASS | Both ISS and RV32_5S record length 11 and the same solving path. The certified BFS oracle establishes optimality. The diameter comes from the complete host H3 result, not the target samples. |
-| T7: three cases on ISS and a visual pipeline model | PASS for the solver core; final string-entry coverage incomplete | The same final core ELFs passed solved, one-move, and distance-11 inputs on ISS and RV32_5S. The final 14-character text-entry ELF has an ISS record, but its three-case RV32_5S record is missing. The older text-entry pipeline smoke test covers solved/one-move/invalid inputs, not the required hard case. |
+| T7: three cases on ISS and a visual pipeline model | PASS for the final text-entry executable | The same final CLI ELF passed solved, one-move and the required distance-11 input on ISS and RV32_5S. All paths and target verification status pass; actual records are in `validation/verified_t7/`. |
 
-The three core cases, already present in both processor CSVs, are:
+The three final text-entry cases, recorded on both processor models, are:
 
 | Inlined state | Expected length | Returned path |
 | --- | ---: | --- |
@@ -24,7 +25,7 @@ The three core cases, already present in both processor CSVs, are:
 
 RV32_5S is a visual pipeline processor model executed here through the CLI.
 GUI screenshots and pipeline observations are separate, still pending work;
-they are not needed to claim the recorded core executions. No execution claim
+they are not needed to claim the recorded CLI executions. No execution claim
 is made for an unspecified future grader input. The generic parser and search
 support replacing the inlined string with any valid state, without changing
 the algorithm or providing a precomputed solution.
@@ -36,11 +37,11 @@ the algorithm or providing a precomputed solution.
 | RV32I only; no M or other extensions; no compiler runtime calls | PASS | Archived inspection checks every linked instruction. Solver symbols and calls are handwritten assembly; no libc/libgcc helper is linked. Constant products use shifts/additions; parser modulo uses bounded subtraction. |
 | No heap, recursion, or floating point; fixed storage | PASS | Search uses a fixed 240-byte frame with ten explicit ancestor records. Calls are acyclic; data and path buffers are sized at assembly time. The text-entry maximum call stack is 304 bytes. |
 | Arbitrary valid 14-character inlined input | PASS for implementation and recorded coverage | `start.S` defines `asm_input` with `.asciz`; `asm_parse_state` validates length, digit ranges, uniqueness, and twist sum. Search depends on parsed coordinates, not a list of known vectors. |
-| At least three required categories of test case | PASS for supplied automated cases | Solved, short scramble, and the specified distance-11 vector are in both core processor records. |
-| Validate solving results inside the target program | **NOT SATISFIED** | Concrete path replay, solved-state comparison, and expected-length assertions are in `check_asm.py` and `compare.py`. `start.S` solves and prints; `compare_start.S` checks ABI/stack integrity only. The target accessor gate checks table operations, not whole solutions. Automated host validation does not fulfill this separate requirement. |
+| At least three required categories of test case | PASS | Solved, short scramble and the specified distance-11 vector pass through the final CLI on both models. |
+| Validate solving results inside the target program | PASS | `asm_solve_text` calls handwritten `asm_verify_solution` on the original parsed cube and returned path. Only exact solved replay returns success; invalid lengths/IDs and nonsolving paths are rejected. The thirteen-case positive/negative gate passes on both models. Host replay remains independent. |
 | Handwritten design rather than mechanical C translation | SATISFIED by documented design | Register-held search state, fixed ancestor frames, inline table operations, unrolled partial ranking, and a cached face-row pointer specialize the target implementation. |
 | Beat final GCC -O2 reference in retired instructions | PASS over the reported full comparison set | Aggregate hard-case reduction is 13.25%; the specified hard case improves from 4,375,238 to 3,787,108 retired instructions. |
-| Beat GCC -O2 in linked code size | **NOT SATISFIED** | Final assembly `.text` is 1,664 bytes versus GCC's 1,612 bytes: 52 bytes larger (3.23%). The baseline and leaf variants are also larger. Reporting and explaining the loss does not establish a code-size win. |
+| Beat GCC -O2 in linked code size | **NOT SATISFIED; deferred** | Normalized assembly `.text` remains 1,664 bytes versus GCC's 1,612 bytes: 52 bytes larger (3.23%). The user explicitly requested no code-size optimization in this correctness change. The verified output CLI has 2,176 text bytes under its separate full-program boundary. |
 | Report reference build and explain losses | PASS | `BENCHMARK.md` reports actual Stage 3 GCC -O2, flags, linked sections, stack, counts, and the size loss. Cached-row optimization adds 32 code bytes relative to the leaf variant while reducing instructions by 5.71%. |
 | Measured iterative refinement and common conventions | PASS | Baseline, leaf, and cached variants are separately measured on the same inputs. Code size is bytes of linked `.text`, with rendering/output absent. Counts use pinned Ripes `--iret`; the common normalized-input harness is included, parsing/output/rendering excluded. Processor models are reported separately. |
 
@@ -49,25 +50,33 @@ and pinned Ripes `v2.2.6-106-g5b8a616`. They compare the actual final C solver
 and assembly under the same normalized-state entry harness. They do not compare
 the text/printing frontend against the normalized C core.
 
-## Work to complete before claiming compliance
+## Remaining work
 
-1. Add handwritten target-side concrete replay and solved-state verification
-   for the arbitrary input and returned path. Supply target self-test cases
-   checking expected lengths 0, 1, and 11; keep validation outside the measured
-   solver boundary for both implementations.
-2. Reduce linked assembly `.text` below 1,612 bytes under the same benchmark
-   convention while retaining the instruction advantage. With RV32I's
-   four-byte instructions, the current binary needs at least a 56-byte reduction
-   to become strictly smaller. New code requires new measurements; preserve
-   the existing refinement records.
-3. Record the three cases through the completed 14-character entry on ISS and
-   RV32_5S. Reuse the existing core results; do not repeat the old exhaustive
-   campaigns just to fill this frontend evidence gap.
+The mandatory correctness gaps and final CLI instruction-budget verification
+requested in this change are complete. Code-size improvement is deliberately
+deferred; reporting the trade-off does not establish a size win. LED rendering
+and GUI pipeline observations remain separate pending assignment work.
 
 Full concrete-state assembly H1/H3 is additional coverage, not a prerequisite
 implied by T5–T7 here. The complete host H3 already establishes diameter 11.
 
 ## Existing evidence
+
+The final **verified full CLI** campaign passes all 2,644 hard states, including
+optimal eleven-move lengths and both target and host replay. Its maximum is
+**6,733,921**, with **zero** states exceeding 50,000,000; `21345671111111`
+takes **3,791,721**. Parsing, validation, search, target replay, printing and
+exit are included; the renderer is absent, static data is **84,868 bytes**.
+See [VERIFIED_CLI.md](VERIFIED_CLI.md) and
+[the current summary](validation/verified_cli_distance11/summary.json).
+The earlier pre-verification measurements remain available in
+[CLI_BENCHMARK.md](CLI_BENCHMARK.md) and their original archive.
+
+- [Final text-entry ISS](validation/verified_t7/correctness_RV32_ISS.json) and
+  [RV32_5S](validation/verified_t7/correctness_RV32_5S.json): 3/3 representative
+  cases and 13/13 verifier gate cases on each model.
+- [Verified CLI regression](validation/verified_cli_shallow/correctness_RV32_ISS.json):
+  404/404, including twelve invalid inputs.
 
 - [Full core comparison](validation/comparison_full/summary.json) and
   [actual paths and counts](validation/comparison_full/comparison.csv):

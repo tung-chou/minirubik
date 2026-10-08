@@ -30,6 +30,47 @@ in `BENCHMARK.md` and `validation/comparison_full/`; per-input actual paths
 and all four retired counts are included in CSV. Metadata includes source,
 oracle, Ripes and ELF hashes, compiler flags and execution commands.
 
+## Historical full-program grading verification before target replay
+
+The final optimized `solver.elf` was force-rebuilt with the existing two
+optimization switches and solution printing enabled, with no LED renderer.
+Its ELF hash matches the prior optimized CLI. Added `--distance11-only` to
+the correctness runner to select exactly all 2,644 oracle-certified hard
+states and record full-program budget statistics. Every case terminated
+normally, returned eleven moves, and passed independent host replay and the
+validated C path comparison. No additional search optimization was performed.
+
+Maximum retired count: **6,729,751**, state `12347651111111`, rank 3,645.
+Over 50,000,000: **0**. Required vector `21345671111111`: **3,787,559**.
+These counts include text parsing, validation, search, path generation,
+printing and exit, unlike the earlier normalized-input core benchmark.
+Evidence is in `validation/final_cli_distance11/`; `CLI_BENCHMARK.md` contains
+the summary and reproducible commands. The GCC -O2 comparison and all solver
+sources remained unchanged, verified by hashes before and after the run.
+
+## Mandatory correctness completion
+
+Added `asm_verify_solution` to the text wrapper only. It copies the original
+parsed cube, replays concrete moves independently of PDB/abstract transitions,
+checks exact solved bytes, and rejects invalid move IDs/lengths. Failure returns
+`-3`; `a4` exposes target verification status. The 304-byte maximum call stack
+is unchanged. Added thirteen positive/negative verifier cases and optional
+runner selectors; preserved existing test and benchmark defaults.
+
+The same final text-entry ELF passes all three T7 inputs on ISS and RV32_5S,
+and the verifier gate passes 13/13 on both. Existing ISS regression: 404/404.
+Full hard set: 2,644/2,644 optimal eleven-move solutions, target verification
+and independent host replay PASS. Maximum **6,733,921**, state
+`12347651111111`, rank 3,645; over 50,000,000: **0**. Required vector:
+**3,791,721**. Static data is **84,868** bytes; output CLI text is 2,176 bytes.
+
+No additional performance optimization was made. The rebuilt normalized
+assembly core is byte-identical to the archived comparison ELF. GCC comparison
+sources/configuration/evidence remain unchanged; its 52-byte code-size loss
+is deferred at the user's request. Historical CLI evidence remains untouched.
+New records are in `validation/verified_t7/`, `verified_cli_shallow/` and
+`verified_cli_distance11/`. See `VERIFIED_CLI.md` for reproducible commands.
+
 ## Corrected issues
 
 The initial C wrapper caused GCC to emit an unresolved `memcpy` for an

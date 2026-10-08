@@ -38,6 +38,10 @@ _start:
     j .Lprint_done
 .Lerror:
     la a0, asm_invalid_message
+    li t0, -3
+    bne s0, t0, .Lprint_error
+    la a0, asm_verification_message
+.Lprint_error:
     call asm_print_string
 .Lprint_done:
     mv a0, s0
@@ -85,6 +89,8 @@ asm_move_names:
     .asciz "D'"
 asm_invalid_message:
     .asciz "invalid input or search failure\n"
+asm_verification_message:
+    .asciz "solution verification failed\n"
 #endif
     .section .bench_input,"aw",@progbits
     .globl asm_input

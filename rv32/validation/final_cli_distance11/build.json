@@ -1,0 +1,45 @@
+{
+  "compiler": "riscv64-unknown-elf-gcc (13.2.0-11ubuntu1+12) 13.2.0",
+  "build_command": [
+    "make",
+    "-C",
+    "rv32",
+    "-B",
+    "build/solver.elf",
+    "RV32_CC=/tmp/minirubik-toolchain/usr/bin/riscv64-unknown-elf-gcc"
+  ],
+  "link_inputs": [
+    "rv32/solver.S",
+    "rv32/start.S",
+    "rv32/build/tables.S"
+  ],
+  "assembly_flags": [
+    "-march=rv32i",
+    "-mabi=ilp32",
+    "-mno-relax",
+    "-msmall-data-limit=0",
+    "-nostdlib",
+    "-Wl,--no-relax",
+    "-Wl,-T,../tests/rv32.ld",
+    "-DASM_REMOVE_LEAF_RA",
+    "-DASM_CACHE_FACE_ROW",
+    "-DASM_PRINT"
+  ],
+  "renderer_linked": false,
+  "elf_sha256": "8cea7dce2b3104814181235a1492faee9543783f1e872b7591d7128186c9ed28",
+  "inspection": {
+    "all_linked_instructions": "RV32I",
+    "exported_table_bytes_checked": 84681,
+    "static_sections": {
+      ".rodata": 84749,
+      ".data": 32,
+      ".bss": 11
+    },
+    "static_bytes": 84792,
+    "text_bytes": 1836
+  },
+  "host_prerequisites": [
+    "make pdb ida_solver",
+    "make -C tests distances"
+  ]
+}

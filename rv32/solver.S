@@ -464,7 +464,9 @@ asm_solve:
     ret
     .size asm_solve, .-asm_solve
 
-/* a0=text, a1=11-byte path. -2=invalid, -1=search failure, 0..11=length.
+/* a0=text, a1=11-byte path. -2=invalid, -1=search failure, -3=bad solution.
+ * Nonnegative length is returned only after concrete replay reaches solved.
+ * a4 reports whether replay passed (1), or the input/result was rejected (0).
  * Maximum simultaneous stack: 32+32+240 = 304 bytes.
  */
     .section .text.asm_solve_text,"ax",@progbits
@@ -480,11 +482,123 @@ asm_solve_text:
     mv a0, sp
     lw a1, 16(sp)
     call asm_solve
+    bltz a0, .Ltext_return
+    sw a0, 20(sp)
+    mv a2, a0
+    mv a0, sp
+    lw a1, 16(sp)
+    call asm_verify_solution
+    beqz a0, .Ltext_bad_solution
+    lw a0, 20(sp)
+    j .Ltext_return
+.Ltext_bad_solution:
+    li a0, -3
     j .Ltext_return
 .Ltext_invalid:
     li a0, -2
 .Ltext_return:
+    slti a4, a0, 0
+    xori a4, a4, 1
     lw ra, 28(sp)
     addi sp, sp, 32
     ret
     .size asm_solve_text, .-asm_solve_text
+
+/* a0=original valid state, a1=path, a2=length; return 1 iff replay is solved.
+ * Leaf routine: copy the original cube, then replay concrete quarter turns.
+ * Uses no PDB/abstract transitions. Input and path remain unchanged.
+ * Working cube occupies sp[0..13], quarter-turn output sp[16..29].
+ */
+    .section .text.asm_verify_solution,"ax",@progbits
+    .globl asm_verify_solution
+    .type asm_verify_solution,@function
+asm_verify_solution:
+    addi sp, sp, -32
+    li t0, 11
+    bltu t0, a2, .Lverify_failed
+    mv t0, sp
+    li t1, 14
+.Lverify_copy:
+    lbu t2, 0(a0)
+    sb t2, 0(t0)
+    addi a0, a0, 1
+    addi t0, t0, 1
+    addi t1, t1, -1
+    bnez t1, .Lverify_copy
+.Lverify_move:
+    beqz a2, .Lverify_goal
+    lbu t0, 0(a1)
+    addi a1, a1, 1
+    addi a2, a2, -1
+    li t1, 9
+    bgeu t0, t1, .Lverify_failed
+    li t1, 0
+    li t2, 3
+.Lverify_face:
+    bltu t0, t2, .Lverify_face_ready
+    addi t0, t0, -3
+    addi t1, t1, 14
+    j .Lverify_face
+.Lverify_face_ready:
+    la a3, asm_replay_moves
+    add a3, a3, t1
+    addi a5, t0, 1
+.Lverify_quarter:
+    li a6, 0
+.Lverify_corner:
+    add t0, a3, a6
+    lbu t1, 0(t0)
+    lbu t2, 7(t0)
+    add t3, sp, t1
+    lbu t4, 0(t3)
+    lbu t5, 7(t3)
+    add t5, t5, t2
+    li t6, 3
+    bltu t5, t6, .Lverify_twist_ready
+    addi t5, t5, -3
+.Lverify_twist_ready:
+    add t3, sp, a6
+    sb t4, 16(t3)
+    sb t5, 23(t3)
+    addi a6, a6, 1
+    li t6, 7
+    bltu a6, t6, .Lverify_corner
+    mv t0, sp
+    li t1, 14
+.Lverify_commit:
+    lbu t2, 16(t0)
+    sb t2, 0(t0)
+    addi t0, t0, 1
+    addi t1, t1, -1
+    bnez t1, .Lverify_commit
+    addi a5, a5, -1
+    bnez a5, .Lverify_quarter
+    j .Lverify_move
+.Lverify_goal:
+    li t0, 0
+.Lverify_goal_corner:
+    add t1, sp, t0
+    lbu t2, 0(t1)
+    bne t2, t0, .Lverify_failed
+    lbu t2, 7(t1)
+    bnez t2, .Lverify_failed
+    addi t0, t0, 1
+    li t1, 7
+    bltu t0, t1, .Lverify_goal_corner
+    li a0, 1
+    j .Lverify_return
+.Lverify_failed:
+    li a0, 0
+.Lverify_return:
+    addi sp, sp, 32
+    ret
+    .size asm_verify_solution, .-asm_verify_solution
+
+/* Each row contains seven source positions followed by seven twist deltas.
+ * Separate section lets the normalized core benchmark discard replay data.
+ */
+    .section .rodata.asm_replay_moves,"a",@progbits
+asm_replay_moves:
+    .byte 1,4,2,0,3,5,6, 1,2,0,2,1,0,0
+    .byte 0,1,2,4,5,6,3, 0,0,0,1,2,1,2
+    .byte 0,2,5,3,1,4,6, 0,0,0,0,0,0,0

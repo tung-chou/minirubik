@@ -40,9 +40,10 @@ There is no discovered discrepancy; checking the official handout remains open.
 | `search_coordinates`, `pdb_rank_parts` | `asm_coordinates` and internal `asm_rank4`; one inverse map and unrolled ranking |
 | `turn_coordinate`, `coordinate_distance` | Handwritten leaf accessors and inline RV32I macros in the hot search |
 | `ida_search` | `asm_search`, fixed explicit ancestors, same traversal and threshold result |
-| `solve` | `asm_solve`, normalized-state API; `asm_solve_text` adds input validation |
+| `solve` | `asm_solve`, normalized-state API; `asm_solve_text` adds input validation and concrete solution replay |
 | CLI output | Ripes ecalls and a small handwritten character emitter in `start.S` |
-| `self_test`, full ranking/unranking, concrete moves | Host correctness utilities; not linked into the target |
+| Concrete solution replay | Handwritten `asm_verify_solution`, independent of abstract transitions and PDBs |
+| `self_test`, full ranking/unranking | Host correctness utilities; not linked into the target |
 | PDB BFS and transition construction | Existing host `generate_pdb.c`; unchanged |
 | Table serialization | New host-only `export_tables.c`, reading the existing generated C arrays |
 | `output_failed`, hosted `argc/argv` handling | Hosted C utilities only; Ripes ecalls have different I/O/exit semantics |
@@ -50,12 +51,21 @@ There is no discovered discrepancy; checking the official handout remains open.
 The entry reads a NUL-terminated string from `asm_input`; its default is an
 ordinary test input, not a special case in the search. Edit or patch this
 32-byte slot to provide any valid 14-digit cube code. Malformed input returns
-`a0 = -2`; search failure returns `-1`; success returns length `0..11` and
-writes move IDs `0..8` to `asm_path`. `asm_solve_text(text, path)` exposes the
+`a0 = -2`; search failure returns `-1`; failed solution replay returns `-3`.
+Success returns a verified length `0..11` and writes move IDs `0..8` to
+`asm_path`. `asm_solve_text(text, path)` exposes the
 same behavior for another caller. Its input pointer must address a readable
 NUL-terminated string and its output pointer must address eleven writable bytes.
 `asm_solve(state, path)` instead accepts a previously validated 14-byte state
 with zero-based cubies/twists, matching the existing C core benchmark boundary.
+
+The text wrapper retains the original parsed cube and replays the returned
+path on a copy. Every final permutation byte must equal its position, and
+every twist must be zero. The verifier bounds length to 0..11 and move IDs to
+0..8. It uses a separate 42-byte concrete move table, not the search PDBs or
+abstract transitions. Invalid results are rejected before printing a solution.
+The CLI leaves `a4 = 1` only after successful verification (`0` on rejection);
+`check_asm.py --require-verification` checks this in addition to host replay.
 
 `solver.elf` prints a solution line, or an input/failure diagnostic.
 `bench.elf` omits output. Ripes exit ecall 10 returns process exit code zero
@@ -82,19 +92,21 @@ is 32, and the text wrapper frame is 32: maximum simultaneous machine stack
 is **304 bytes**. Projection temporarily uses another 32-byte frame, but
 does not overlap the search. Stack top is `0x100000`, inherited from the
 existing freestanding linker/startup arrangement.
+Concrete replay uses a separate 32-byte leaf frame after search has returned,
+so it does not increase the 304-byte maximum.
 
 | Linked section | Solution-output ELF | Silent ELF |
 | --- | ---: | ---: |
-| `.text` | 1,836 | 1,688 |
-| `.rodata` | 84,749 | 84,681 |
+| `.text` | 2,176 | 2,012 |
+| `.rodata` | 84,825 | 84,725 |
 | `.data` | 32 | 32 |
 | `.bss` | 11 | 11 |
-| Static total | **84,792** | **84,724** |
+| Static total | **84,868** | **84,768** |
 
 The table payload is `2*34020 + 3*840*4 + 81*81 = 84,681` bytes.
-The silent executable leaves 46,348 bytes below the provisional 131,072-byte
-static limit. The character strings and their alignment account for 68 bytes
-in the output build. No LED framebuffer is reserved yet. Stack is additional
+The silent executable leaves 46,304 bytes below the 131,072-byte static limit.
+Concrete replay data and alignment add 44 bytes; output strings and alignment
+add another 100 bytes. No LED framebuffer is reserved yet. Stack is additional
 working memory, not an allocated `.bss` section. `.riscv.attributes` is
 non-allocated metadata and is excluded from the static total.
 
@@ -102,6 +114,9 @@ The original Phase 1 source is preserved as `validation/phase1_solver.S`.
 Its output/silent `.text` sizes were 1,812/1,664 bytes. Per-function sections
 now let the linker remove unused parser and accessor functions from the
 normalized core benchmark. This affects linked size, not traversal.
+Replay code and data are also removed from that benchmark. Rebuilding its
+optimized assembly variant produces the same ELF hash as the archived core
+comparison, so its measurements and 52-byte code-size trade-off still apply.
 
 ## Reproduce the build
 
@@ -226,6 +241,18 @@ gates first to certify it. This target run will test optimality, replay, and
 the exact C traversal output for each case. Its printed instruction counts
 include output and do not constitute the renderer-free performance benchmark.
 
+## Final full-program CLI grading
+
+The final verified text-entry grading benchmark is separately documented in
+[VERIFIED_CLI.md](VERIFIED_CLI.md). All 2,644 hard states passed optimality,
+in-program replay and independent host replay on pinned RV32_ISS, with **6,733,921** maximum retired
+instructions and **zero** states above 50,000,000. The required vector takes
+**3,791,721** instructions. These counts include parsing, validation, search,
+path generation, target replay, solution printing and exit; they exclude the LED renderer.
+They must be distinguished from the normalized-input comparison below.
+The same CLI ELF passed solved, short and distance-11 inputs on ISS and RV32_5S.
+The earlier CLI campaign is retained in [CLI_BENCHMARK.md](CLI_BENCHMARK.md).
+
 ## GCC -O2 comparison and incremental optimizations
 
 `compare_start.S` supplies the same 14-byte normalized input and eleven-byte
@@ -298,11 +325,11 @@ Complete concrete-state assembly H1/H3 remain outside this run's coverage.
 ## Remaining work and risks
 
 The [requirements audit](CONSTRAINTS_AUDIT.md) distinguishes recorded test
-passes from assignment compliance. Target-side solution verification and a
-code-size win are still missing; the final string entry also needs its
-three-case pipeline record. Complete those gaps before claiming all T5–T7
-and constraints are satisfied. Existing passing campaigns need not be rerun
-unless their measured code changes.
+passes from assignment compliance. Target-side replay and the final string
+entry's three-case ISS/RV32_5S records are complete. The code-size win remains
+deferred at the user's request: normalized assembly is 52 bytes larger than
+GCC -O2 despite fewer retired instructions. Existing passing campaigns need
+not be rerun unless their measured code changes.
 
 1. Confirm the official handout. Complete concrete-state assembly H1/H3
    remains optional additional coverage; all 2,644 hard states and all abstract
