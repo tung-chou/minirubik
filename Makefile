@@ -12,7 +12,7 @@ VECTORS := tests/solutions.txt
 INVALID_STATES := 1234567111111 123456711111111 02345671111111 82345671111111 \
 	12345671111110 12345671111114 1234567111111a 11345671111111 12345671111112
 
-.PHONY: all pdb check check-ida check-gates rv32-bound measure-rv32 prove clean indent
+.PHONY: all pdb check check-ida check-gates rv32-bound measure-rv32 rv32-asm check-asm inspect-asm compare-asm prove clean indent
 
 all: solver mini ida_solver
 
@@ -42,6 +42,18 @@ check-gates:
 
 rv32-bound measure-rv32:
 	$(MAKE) -C tests $@
+
+rv32-asm:
+	$(MAKE) -C rv32 all
+
+check-asm:
+	$(MAKE) -C rv32 check
+
+inspect-asm:
+	$(MAKE) -C rv32 inspect
+
+compare-asm:
+	$(MAKE) -C rv32 compare
 
 check: solver mini $(VECTORS) check-ida check-gates
 	./solver --self-test
@@ -117,3 +129,4 @@ endif
 clean:
 	$(RM) solver mini ida_solver generate_pdb
 	$(MAKE) -C tests clean
+	$(MAKE) -C rv32 clean

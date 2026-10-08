@@ -1,0 +1,23 @@
+state,expected,actual,output,status,retired_instructions_with_output
+12345671111111,0,0,,PASS,468
+12356741112323,1,1,B',PASS,1049
+12367451111111,1,1,B2,PASS,965
+12374561112323,1,1,B,PASS,885
+13642571111111,1,1,D',PASS,1287
+16543271111111,1,1,D2,PASS,1209
+15246371111111,1,1,D,PASS,1123
+,-2,-2,invalid input or search failure,PASS,232
+25314672313211,1,1,R',PASS,803
+123456711111111,-2,-2,invalid input or search failure,PASS,413
+02345671111111,-2,-2,invalid input or search failure,PASS,232
+82345671111111,-2,-2,invalid input or search failure,PASS,232
+1234567111111,-2,-2,invalid input or search failure,PASS,404
+12345671111114,-2,-2,invalid input or search failure,PASS,404
+1234567111111a,-2,-2,invalid input or search failure,PASS,404
+11345671111111,-2,-2,invalid input or search failure,PASS,251
+12345671111110,-2,-2,invalid input or search failure,PASS,404
+12345671111112,-2,-2,invalid input or search failure,PASS,416
+76543213333333,-2,-2,invalid input or search failure,PASS,428
+12345671111113,-2,-2,invalid input or search failure,PASS,416
+54321671111111,1,1,R2,PASS,719
+41352672313211,1,1,R,PASS,639

@@ -103,6 +103,17 @@ RV32I build uses 84,709 bytes of static data. Its conservative instruction
 bound for all 2,644 distance-11 states is 28,942,094, below 50,000,000.
 This is an analyzed bound; a complete Ripes measurement report is still pending.
 
+The handwritten Stage 4 RV32I baseline is in [`rv32/`](rv32/README.md).
+`make rv32-asm` builds solution-output and silent ELF files; `make inspect-asm`
+checks RV32I encodings, exported tables, and static data. Its recorded Ripes
+baseline passes all 2,644 distance-11 states. The full normalized-core
+comparison measures 10,640 executions across GCC `-O2` and three assembly
+variants; the optimized assembly reduces total hard-state instructions by
+13.25%, with a worst case of 6,729,300. See the [measured benchmark](rv32/BENCHMARK.md)
+for conditions, exact outputs and tradeoffs, and that directory for build commands,
+ABI/data layout, memory sizes and remaining visualization work. The original
+BFS and Stage 3 C implementations remain intact.
+
 The 14-digit argument describes the scramble and the printed line is the
 solution. Both formats are explained below.
 

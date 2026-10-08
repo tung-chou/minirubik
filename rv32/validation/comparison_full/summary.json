@@ -1,0 +1,133 @@
+{
+  "status": "FULL PASS",
+  "cases": 2660,
+  "measured_runs": 10640,
+  "distance11_count": 2644,
+  "processor": "RV32_ISS",
+  "isa": "RV32I",
+  "ripes_version": "v2.2.6-106-g5b8a616",
+  "ripes_sha256": "0587b4cc7e94a2d0e32dc0084b107eef62ef5bae623be41e88c3d5fb79b216a0",
+  "compiler": "riscv64-unknown-elf-gcc (13.2.0-11ubuntu1+12) 13.2.0",
+  "build_flags": {
+    "FLAGS": "-march=rv32i -mabi=ilp32 -mno-relax -msmall-data-limit=0 -nostdlib -Wl,--no-relax -Wl,-T,../tests/rv32.ld",
+    "CFLAGS_CORE": "-O2 -std=c99 -Wall -Wextra -Wpedantic -Werror -march=rv32i -mabi=ilp32 -mno-relax -msmall-data-limit=0 -ffreestanding -fno-builtin -fno-pie -fno-stack-protector -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -fstack-usage",
+    "ASM_OPTFLAGS": "-DASM_REMOVE_LEAF_RA -DASM_CACHE_FACE_ROW"
+  },
+  "link_extra_flags": "-Wl,--gc-sections",
+  "definitions": {
+    "gcc_O2": "BENCH_C",
+    "asm_baseline": "none",
+    "asm_leaf": "ASM_REMOVE_LEAF_RA",
+    "asm_cached": "ASM_REMOVE_LEAF_RA + ASM_CACHE_FACE_ROW"
+  },
+  "variants": {
+    "gcc_O2": {
+      "text_bytes": 1612,
+      "static_sections": {
+        ".rodata": 84692,
+        ".data": 14,
+        ".bss": 11
+      },
+      "static_bytes": 84717,
+      "elf_sha256": "ac9e53dd3d8c8b803859b372e039839333c535d97b552f21cab05a0f5bce0076",
+      "isa": "RV32I",
+      "table_bytes_checked": 84681
+    },
+    "asm_baseline": {
+      "text_bytes": 1640,
+      "static_sections": {
+        ".rodata": 84681,
+        ".data": 14,
+        ".bss": 11
+      },
+      "static_bytes": 84706,
+      "elf_sha256": "1b547966aa5ff65e745cce3c1c5a0b42a99beb077b6512a283d99937510dea33",
+      "isa": "RV32I",
+      "table_bytes_checked": 84681
+    },
+    "asm_leaf": {
+      "text_bytes": 1632,
+      "static_sections": {
+        ".rodata": 84681,
+        ".data": 14,
+        ".bss": 11
+      },
+      "static_bytes": 84706,
+      "elf_sha256": "8036912839e29e07316ba6c7c2540570fa74f34478f823194350a79706866a3f",
+      "isa": "RV32I",
+      "table_bytes_checked": 84681
+    },
+    "asm_cached": {
+      "text_bytes": 1664,
+      "static_sections": {
+        ".rodata": 84681,
+        ".data": 14,
+        ".bss": 11
+      },
+      "static_bytes": 84706,
+      "elf_sha256": "053fe488db11c57d0cad845700309a3dde2695c3866410daac67263998ce5407",
+      "isa": "RV32I",
+      "table_bytes_checked": 84681
+    }
+  },
+  "source_hashes": {
+    "ida_solver.c": "a23d1b4de7fea36cedac67f40086c7ca0bf5748a3a8f18654f46d34bdb900299",
+    "pdb_data.h": "2513bafa71f63dd8979d98ba40a78c443a6a66d70fb922de53430710ff212595",
+    "rv32/solver.S": "08eee806cb3359f468225280571825a55ac396c0d0775f34513166b8ed72a335",
+    "rv32/c_core.c": "5c38fae92eb1069930057e1356a1457d988bf55da81538cbb201a33586e50de8",
+    "rv32/compare_start.S": "1e3f5beabb0063cfa51a9b7d56dfc7627de54052727558a782817af735136a0f",
+    "rv32/Makefile": "edbba4a2ac734fff5f728118591f0a47c53c3267803679a1108f49a44d8adc9d",
+    "rv32/compare.py": "6d47552f4a608a4a7590d08d801a21201236a3bae25cc9366f3a07598ec70520",
+    "tests/exact_distances.bin": "fc964cfb25a341e2208f65b0a97194c0894b248d538afb82d0baaf73843c3413"
+  },
+  "command": [
+    "rv32/compare.py",
+    "--cc",
+    "/tmp/minirubik-toolchain/usr/bin/riscv64-unknown-elf-gcc",
+    "--objdump",
+    "/tmp/minirubik-toolchain/usr/bin/riscv64-unknown-elf-objdump",
+    "--ripes",
+    "/tmp/minirubik-ripes/squashfs-root/AppRun",
+    "--xvfb",
+    "/tmp/minirubik-ripes/Xvfb",
+    "--xvfb-library-dir",
+    "/tmp/minirubik-toolchain/usr/lib/x86_64-linux-gnu",
+    "--output",
+    "rv32/results/comparison_full"
+  ],
+  "measurement_boundary": "normalized state; includes identical startup, ABI probes, result packing and exit; no parsing/output/renderer",
+  "retired_instruction_limit": 50000000,
+  "worst": {
+    "gcc_O2": {
+      "rank": 1137240,
+      "state": "32145671111111",
+      "instructions": 7762682
+    },
+    "asm_baseline": {
+      "rank": 3645,
+      "state": "12347651111111",
+      "instructions": 7136067
+    },
+    "asm_leaf": {
+      "rank": 3645,
+      "state": "12347651111111",
+      "instructions": 7136051
+    },
+    "asm_cached": {
+      "rank": 3645,
+      "state": "12347651111111",
+      "instructions": 6729300
+    }
+  },
+  "distance11_total": {
+    "gcc_O2": 3537903354,
+    "asm_baseline": 3254943926,
+    "asm_leaf": 3254914982,
+    "asm_cached": 3069039820
+  },
+  "aggregate_improvement_percent": 13.25258174364477,
+  "optimizations": {
+    "leaf_saved_instructions": 28944,
+    "cache_saved_instructions": 185875162
+  }
+}

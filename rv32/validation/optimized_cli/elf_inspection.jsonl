@@ -1,0 +1,2 @@
+{"elf": "rv32/build/solver.elf", "status": "PASS", "text_bytes": 1836, "static_sections": {".rodata": 84749, ".data": 32, ".bss": 11}, "static_bytes": 84792, "isa": "RV32I", "exported_table_bytes_checked": 84681}
+{"elf": "rv32/build/bench.elf", "status": "PASS", "text_bytes": 1688, "static_sections": {".rodata": 84681, ".data": 32, ".bss": 11}, "static_bytes": 84724, "isa": "RV32I", "exported_table_bytes_checked": 84681}

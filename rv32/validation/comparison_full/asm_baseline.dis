@@ -1,0 +1,427 @@
+
+/home/unijoy/Computer_Architecture/minirubik/rv32/build/asm_baseline.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00001000 <_start>:
+    1000:	00100137          	lui	sp,0x100
+    1004:	5a55a2b7          	lui	t0,0x5a55a
+    1008:	55a28293          	addi	t0,t0,1370 # 5a55a55a <compare_path+0x5a544418>
+    100c:	80512023          	sw	t0,-2048(sp) # ff800 <compare_path+0xe96be>
+    1010:	06500413          	addi	s0,zero,101
+    1014:	06600493          	addi	s1,zero,102
+    1018:	06700913          	addi	s2,zero,103
+    101c:	06800993          	addi	s3,zero,104
+    1020:	06900a13          	addi	s4,zero,105
+    1024:	06a00a93          	addi	s5,zero,106
+    1028:	06b00b13          	addi	s6,zero,107
+    102c:	06c00b93          	addi	s7,zero,108
+    1030:	06d00c13          	addi	s8,zero,109
+    1034:	06e00c93          	addi	s9,zero,110
+    1038:	06f00d13          	addi	s10,zero,111
+    103c:	07000d93          	addi	s11,zero,112
+    1040:	00015517          	auipc	a0,0x15
+    1044:	0f450513          	addi	a0,a0,244 # 16134 <compare_input>
+    1048:	00015597          	auipc	a1,0x15
+    104c:	0fa58593          	addi	a1,a1,250 # 16142 <compare_path>
+    1050:	00000097          	auipc	ra,0x0
+    1054:	56c080e7          	jalr	ra,1388(ra) # 15bc <asm_solve>
+    1058:	00000793          	addi	a5,zero,0
+    105c:	06500293          	addi	t0,zero,101
+    1060:	06541c63          	bne	s0,t0,10d8 <_start+0xd8>
+    1064:	06600293          	addi	t0,zero,102
+    1068:	06549863          	bne	s1,t0,10d8 <_start+0xd8>
+    106c:	06700293          	addi	t0,zero,103
+    1070:	06591463          	bne	s2,t0,10d8 <_start+0xd8>
+    1074:	06800293          	addi	t0,zero,104
+    1078:	06599063          	bne	s3,t0,10d8 <_start+0xd8>
+    107c:	06900293          	addi	t0,zero,105
+    1080:	045a1c63          	bne	s4,t0,10d8 <_start+0xd8>
+    1084:	06a00293          	addi	t0,zero,106
+    1088:	045a9863          	bne	s5,t0,10d8 <_start+0xd8>
+    108c:	06b00293          	addi	t0,zero,107
+    1090:	045b1463          	bne	s6,t0,10d8 <_start+0xd8>
+    1094:	06c00293          	addi	t0,zero,108
+    1098:	045b9063          	bne	s7,t0,10d8 <_start+0xd8>
+    109c:	06d00293          	addi	t0,zero,109
+    10a0:	025c1c63          	bne	s8,t0,10d8 <_start+0xd8>
+    10a4:	06e00293          	addi	t0,zero,110
+    10a8:	025c9863          	bne	s9,t0,10d8 <_start+0xd8>
+    10ac:	06f00293          	addi	t0,zero,111
+    10b0:	025d1463          	bne	s10,t0,10d8 <_start+0xd8>
+    10b4:	07000293          	addi	t0,zero,112
+    10b8:	025d9063          	bne	s11,t0,10d8 <_start+0xd8>
+    10bc:	00100337          	lui	t1,0x100
+    10c0:	00611c63          	bne	sp,t1,10d8 <_start+0xd8>
+    10c4:	80032283          	lw	t0,-2048(t1) # ff800 <compare_path+0xe96be>
+    10c8:	5a55a337          	lui	t1,0x5a55a
+    10cc:	55a30313          	addi	t1,t1,1370 # 5a55a55a <compare_path+0x5a544418>
+    10d0:	00629463          	bne	t0,t1,10d8 <_start+0xd8>
+    10d4:	0080006f          	jal	zero,10dc <_start+0xdc>
+    10d8:	00100793          	addi	a5,zero,1
+    10dc:	00015f97          	auipc	t6,0x15
+    10e0:	066f8f93          	addi	t6,t6,102 # 16142 <compare_path>
+    10e4:	000fc583          	lbu	a1,0(t6)
+    10e8:	001fc283          	lbu	t0,1(t6)
+    10ec:	00829293          	slli	t0,t0,0x8
+    10f0:	0055e5b3          	or	a1,a1,t0
+    10f4:	002fc283          	lbu	t0,2(t6)
+    10f8:	01029293          	slli	t0,t0,0x10
+    10fc:	0055e5b3          	or	a1,a1,t0
+    1100:	003fc283          	lbu	t0,3(t6)
+    1104:	01829293          	slli	t0,t0,0x18
+    1108:	0055e5b3          	or	a1,a1,t0
+    110c:	004fc603          	lbu	a2,4(t6)
+    1110:	005fc283          	lbu	t0,5(t6)
+    1114:	00829293          	slli	t0,t0,0x8
+    1118:	00566633          	or	a2,a2,t0
+    111c:	006fc283          	lbu	t0,6(t6)
+    1120:	01029293          	slli	t0,t0,0x10
+    1124:	00566633          	or	a2,a2,t0
+    1128:	007fc283          	lbu	t0,7(t6)
+    112c:	01829293          	slli	t0,t0,0x18
+    1130:	00566633          	or	a2,a2,t0
+    1134:	008fc683          	lbu	a3,8(t6)
+    1138:	009fc283          	lbu	t0,9(t6)
+    113c:	00829293          	slli	t0,t0,0x8
+    1140:	0056e6b3          	or	a3,a3,t0
+    1144:	00afc283          	lbu	t0,10(t6)
+    1148:	01029293          	slli	t0,t0,0x10
+    114c:	0056e6b3          	or	a3,a3,t0
+    1150:	00a00893          	addi	a7,zero,10
+    1154:	00000073          	ecall
+    1158:	0000006f          	jal	zero,1158 <_start+0x158>
+
+0000115c <asm_rank4>:
+    115c:	00054283          	lbu	t0,0(a0)
+    1160:	00154303          	lbu	t1,1(a0)
+    1164:	00254383          	lbu	t2,2(a0)
+    1168:	00354e03          	lbu	t3,3(a0)
+    116c:	0062beb3          	sltu	t4,t0,t1
+    1170:	41d30333          	sub	t1,t1,t4
+    1174:	00154603          	lbu	a2,1(a0)
+    1178:	0072beb3          	sltu	t4,t0,t2
+    117c:	00763f33          	sltu	t5,a2,t2
+    1180:	41d38fb3          	sub	t6,t2,t4
+    1184:	41ef8fb3          	sub	t6,t6,t5
+    1188:	01c2beb3          	sltu	t4,t0,t3
+    118c:	01c63f33          	sltu	t5,a2,t3
+    1190:	01c3b6b3          	sltu	a3,t2,t3
+    1194:	41de0e33          	sub	t3,t3,t4
+    1198:	41ee0e33          	sub	t3,t3,t5
+    119c:	40de0e33          	sub	t3,t3,a3
+    11a0:	00229e93          	slli	t4,t0,0x2
+    11a4:	00129293          	slli	t0,t0,0x1
+    11a8:	01d282b3          	add	t0,t0,t4
+    11ac:	006282b3          	add	t0,t0,t1
+    11b0:	00229e93          	slli	t4,t0,0x2
+    11b4:	01d282b3          	add	t0,t0,t4
+    11b8:	01f282b3          	add	t0,t0,t6
+    11bc:	00229293          	slli	t0,t0,0x2
+    11c0:	01c282b3          	add	t0,t0,t3
+    11c4:	0005c303          	lbu	t1,0(a1)
+    11c8:	0015c383          	lbu	t2,1(a1)
+    11cc:	00131e13          	slli	t3,t1,0x1
+    11d0:	01c30333          	add	t1,t1,t3
+    11d4:	00730333          	add	t1,t1,t2
+    11d8:	0025c383          	lbu	t2,2(a1)
+    11dc:	00131e13          	slli	t3,t1,0x1
+    11e0:	01c30333          	add	t1,t1,t3
+    11e4:	00730333          	add	t1,t1,t2
+    11e8:	0035c383          	lbu	t2,3(a1)
+    11ec:	00131e13          	slli	t3,t1,0x1
+    11f0:	01c30333          	add	t1,t1,t3
+    11f4:	00730333          	add	t1,t1,t2
+    11f8:	00a31313          	slli	t1,t1,0xa
+    11fc:	0062e533          	or	a0,t0,t1
+    1200:	00008067          	jalr	zero,0(ra)
+
+00001204 <asm_coordinates>:
+    1204:	fe010113          	addi	sp,sp,-32
+    1208:	00112e23          	sw	ra,28(sp)
+    120c:	00000293          	addi	t0,zero,0
+    1210:	00750593          	addi	a1,a0,7
+    1214:	00054303          	lbu	t1,0(a0)
+    1218:	0005c383          	lbu	t2,0(a1)
+    121c:	00610e33          	add	t3,sp,t1
+    1220:	005e0023          	sb	t0,0(t3)
+    1224:	007e03a3          	sb	t2,7(t3)
+    1228:	00150513          	addi	a0,a0,1
+    122c:	00158593          	addi	a1,a1,1
+    1230:	00128293          	addi	t0,t0,1
+    1234:	00700e93          	addi	t4,zero,7
+    1238:	fdd2eee3          	bltu	t0,t4,1214 <asm_coordinates+0x10>
+    123c:	00010513          	addi	a0,sp,0
+    1240:	00710593          	addi	a1,sp,7
+    1244:	00000097          	auipc	ra,0x0
+    1248:	f18080e7          	jalr	ra,-232(ra) # 115c <asm_rank4>
+    124c:	00a12823          	sw	a0,16(sp)
+    1250:	00310513          	addi	a0,sp,3
+    1254:	00a10593          	addi	a1,sp,10
+    1258:	00000097          	auipc	ra,0x0
+    125c:	f04080e7          	jalr	ra,-252(ra) # 115c <asm_rank4>
+    1260:	00050593          	addi	a1,a0,0
+    1264:	01012503          	lw	a0,16(sp)
+    1268:	01c12083          	lw	ra,28(sp)
+    126c:	02010113          	addi	sp,sp,32
+    1270:	00008067          	jalr	zero,0(ra)
+
+00001274 <asm_coordinate_distance>:
+    1274:	00000617          	auipc	a2,0x0
+    1278:	3f460613          	addi	a2,a2,1012 # 1668 <asm_pdb_a>
+    127c:	00058663          	beq	a1,zero,1288 <asm_coordinate_distance+0x14>
+    1280:	00009617          	auipc	a2,0x9
+    1284:	8cc60613          	addi	a2,a2,-1844 # 9b4c <asm_pdb_b>
+    1288:	3ff57293          	andi	t0,a0,1023
+    128c:	00629313          	slli	t1,t0,0x6
+    1290:	00429393          	slli	t2,t0,0x4
+    1294:	006282b3          	add	t0,t0,t1
+    1298:	007282b3          	add	t0,t0,t2
+    129c:	00a55313          	srli	t1,a0,0xa
+    12a0:	006282b3          	add	t0,t0,t1
+    12a4:	0012d313          	srli	t1,t0,0x1
+    12a8:	00c30333          	add	t1,t1,a2
+    12ac:	00034303          	lbu	t1,0(t1)
+    12b0:	0012f293          	andi	t0,t0,1
+    12b4:	00229293          	slli	t0,t0,0x2
+    12b8:	00535533          	srl	a0,t1,t0
+    12bc:	00f57513          	andi	a0,a0,15
+    12c0:	00008067          	jalr	zero,0(ra)
+
+000012c4 <asm_search>:
+    12c4:	f1010113          	addi	sp,sp,-240
+    12c8:	0a812823          	sw	s0,176(sp)
+    12cc:	0a912a23          	sw	s1,180(sp)
+    12d0:	0b212c23          	sw	s2,184(sp)
+    12d4:	0b312e23          	sw	s3,188(sp)
+    12d8:	0d412023          	sw	s4,192(sp)
+    12dc:	0d512223          	sw	s5,196(sp)
+    12e0:	0d612423          	sw	s6,200(sp)
+    12e4:	0d712623          	sw	s7,204(sp)
+    12e8:	0d812823          	sw	s8,208(sp)
+    12ec:	0d912a23          	sw	s9,212(sp)
+    12f0:	0da12c23          	sw	s10,216(sp)
+    12f4:	0db12e23          	sw	s11,220(sp)
+    12f8:	0e112023          	sw	ra,224(sp)
+    12fc:	0aa12023          	sw	a0,160(sp)
+    1300:	0ab12223          	sw	a1,164(sp)
+    1304:	00050413          	addi	s0,a0,0
+    1308:	00058493          	addi	s1,a1,0
+    130c:	00060913          	addi	s2,a2,0
+    1310:	00068993          	addi	s3,a3,0
+    1314:	00000a13          	addi	s4,zero,0
+    1318:	00000a93          	addi	s5,zero,0
+    131c:	00000b13          	addi	s6,zero,0
+    1320:	00300b93          	addi	s7,zero,3
+    1324:	00c00c13          	addi	s8,zero,12
+    1328:	00011c97          	auipc	s9,0x11
+    132c:	d08c8c93          	addi	s9,s9,-760 # 12030 <asm_coordinate_turn>
+    1330:	00013d17          	auipc	s10,0x13
+    1334:	460d0d13          	addi	s10,s10,1120 # 14790 <asm_orientation_add>
+    1338:	00000d97          	auipc	s11,0x0
+    133c:	330d8d93          	addi	s11,s11,816 # 1668 <asm_pdb_a>
+    1340:	00009817          	auipc	a6,0x9
+    1344:	80c80813          	addi	a6,a6,-2036 # 9b4c <asm_pdb_b>
+    1348:	00300293          	addi	t0,zero,3
+    134c:	1a5a8463          	beq	s5,t0,14f4 <asm_search+0x230>
+    1350:	177a8663          	beq	s5,s7,14bc <asm_search+0x1f8>
+    1354:	165b0863          	beq	s6,t0,14c4 <asm_search+0x200>
+    1358:	00ba9293          	slli	t0,s5,0xb
+    135c:	00aa9313          	slli	t1,s5,0xa
+    1360:	006282b3          	add	t0,t0,t1
+    1364:	008a9313          	slli	t1,s5,0x8
+    1368:	006282b3          	add	t0,t0,t1
+    136c:	005a9313          	slli	t1,s5,0x5
+    1370:	006282b3          	add	t0,t0,t1
+    1374:	005c87b3          	add	a5,s9,t0
+    1378:	3ff47293          	andi	t0,s0,1023
+    137c:	00229293          	slli	t0,t0,0x2
+    1380:	00f282b3          	add	t0,t0,a5
+    1384:	0002a303          	lw	t1,0(t0)
+    1388:	00a35393          	srli	t2,t1,0xa
+    138c:	00639e13          	slli	t3,t2,0x6
+    1390:	00439e93          	slli	t4,t2,0x4
+    1394:	01c383b3          	add	t2,t2,t3
+    1398:	01d383b3          	add	t2,t2,t4
+    139c:	00a45e13          	srli	t3,s0,0xa
+    13a0:	01c383b3          	add	t2,t2,t3
+    13a4:	01a383b3          	add	t2,t2,s10
+    13a8:	0003c383          	lbu	t2,0(t2)
+    13ac:	00a39393          	slli	t2,t2,0xa
+    13b0:	3ff37313          	andi	t1,t1,1023
+    13b4:	00736433          	or	s0,t1,t2
+    13b8:	3ff4f293          	andi	t0,s1,1023
+    13bc:	00229293          	slli	t0,t0,0x2
+    13c0:	00f282b3          	add	t0,t0,a5
+    13c4:	0002a303          	lw	t1,0(t0)
+    13c8:	00a35393          	srli	t2,t1,0xa
+    13cc:	00639e13          	slli	t3,t2,0x6
+    13d0:	00439e93          	slli	t4,t2,0x4
+    13d4:	01c383b3          	add	t2,t2,t3
+    13d8:	01d383b3          	add	t2,t2,t4
+    13dc:	00a4de13          	srli	t3,s1,0xa
+    13e0:	01c383b3          	add	t2,t2,t3
+    13e4:	01a383b3          	add	t2,t2,s10
+    13e8:	0003c383          	lbu	t2,0(t2)
+    13ec:	00a39393          	slli	t2,t2,0xa
+    13f0:	3ff37313          	andi	t1,t1,1023
+    13f4:	007364b3          	or	s1,t1,t2
+    13f8:	001b0b13          	addi	s6,s6,1
+    13fc:	3ff47293          	andi	t0,s0,1023
+    1400:	00629313          	slli	t1,t0,0x6
+    1404:	00429393          	slli	t2,t0,0x4
+    1408:	006282b3          	add	t0,t0,t1
+    140c:	007282b3          	add	t0,t0,t2
+    1410:	00a45313          	srli	t1,s0,0xa
+    1414:	006282b3          	add	t0,t0,t1
+    1418:	0012d313          	srli	t1,t0,0x1
+    141c:	01b30333          	add	t1,t1,s11
+    1420:	00034303          	lbu	t1,0(t1)
+    1424:	0012f293          	andi	t0,t0,1
+    1428:	00229293          	slli	t0,t0,0x2
+    142c:	00535533          	srl	a0,t1,t0
+    1430:	00f57513          	andi	a0,a0,15
+    1434:	3ff4f293          	andi	t0,s1,1023
+    1438:	00629313          	slli	t1,t0,0x6
+    143c:	00429393          	slli	t2,t0,0x4
+    1440:	006282b3          	add	t0,t0,t1
+    1444:	007282b3          	add	t0,t0,t2
+    1448:	00a4d313          	srli	t1,s1,0xa
+    144c:	006282b3          	add	t0,t0,t1
+    1450:	0012d313          	srli	t1,t0,0x1
+    1454:	01030333          	add	t1,t1,a6
+    1458:	00034303          	lbu	t1,0(t1)
+    145c:	0012f293          	andi	t0,t0,1
+    1460:	00229293          	slli	t0,t0,0x2
+    1464:	005355b3          	srl	a1,t1,t0
+    1468:	00f5f593          	andi	a1,a1,15
+    146c:	00b57463          	bgeu	a0,a1,1474 <asm_search+0x1b0>
+    1470:	00058513          	addi	a0,a1,0
+    1474:	00aa02b3          	add	t0,s4,a0
+    1478:	00128293          	addi	t0,t0,1
+    147c:	02596a63          	bltu	s2,t0,14b0 <asm_search+0x1ec>
+    1480:	0a050663          	beq	a0,zero,152c <asm_search+0x268>
+    1484:	004a1293          	slli	t0,s4,0x4
+    1488:	005102b3          	add	t0,sp,t0
+    148c:	0082a023          	sw	s0,0(t0)
+    1490:	0092a223          	sw	s1,4(t0)
+    1494:	0152a423          	sw	s5,8(t0)
+    1498:	0162a623          	sw	s6,12(t0)
+    149c:	001a0a13          	addi	s4,s4,1
+    14a0:	000a8b93          	addi	s7,s5,0
+    14a4:	00000a93          	addi	s5,zero,0
+    14a8:	00000b13          	addi	s6,zero,0
+    14ac:	e9dff06f          	jal	zero,1348 <asm_search+0x84>
+    14b0:	e982fce3          	bgeu	t0,s8,1348 <asm_search+0x84>
+    14b4:	00028c13          	addi	s8,t0,0
+    14b8:	e91ff06f          	jal	zero,1348 <asm_search+0x84>
+    14bc:	001a8a93          	addi	s5,s5,1
+    14c0:	e89ff06f          	jal	zero,1348 <asm_search+0x84>
+    14c4:	001a8a93          	addi	s5,s5,1
+    14c8:	00000b13          	addi	s6,zero,0
+    14cc:	000a0e63          	beq	s4,zero,14e8 <asm_search+0x224>
+    14d0:	fffa0293          	addi	t0,s4,-1
+    14d4:	00429293          	slli	t0,t0,0x4
+    14d8:	005102b3          	add	t0,sp,t0
+    14dc:	0002a403          	lw	s0,0(t0)
+    14e0:	0042a483          	lw	s1,4(t0)
+    14e4:	e65ff06f          	jal	zero,1348 <asm_search+0x84>
+    14e8:	0a012403          	lw	s0,160(sp)
+    14ec:	0a412483          	lw	s1,164(sp)
+    14f0:	e59ff06f          	jal	zero,1348 <asm_search+0x84>
+    14f4:	020a0863          	beq	s4,zero,1524 <asm_search+0x260>
+    14f8:	fffa0a13          	addi	s4,s4,-1
+    14fc:	004a1293          	slli	t0,s4,0x4
+    1500:	005102b3          	add	t0,sp,t0
+    1504:	0002a403          	lw	s0,0(t0)
+    1508:	0042a483          	lw	s1,4(t0)
+    150c:	0082aa83          	lw	s5,8(t0)
+    1510:	00c2ab03          	lw	s6,12(t0)
+    1514:	00300b93          	addi	s7,zero,3
+    1518:	e20a08e3          	beq	s4,zero,1348 <asm_search+0x84>
+    151c:	ff82ab83          	lw	s7,-8(t0)
+    1520:	e29ff06f          	jal	zero,1348 <asm_search+0x84>
+    1524:	41800533          	sub	a0,zero,s8
+    1528:	0580006f          	jal	zero,1580 <asm_search+0x2bc>
+    152c:	00000293          	addi	t0,zero,0
+    1530:	00010313          	addi	t1,sp,0
+    1534:	03428863          	beq	t0,s4,1564 <asm_search+0x2a0>
+    1538:	00832383          	lw	t2,8(t1)
+    153c:	00c32e03          	lw	t3,12(t1)
+    1540:	00139e93          	slli	t4,t2,0x1
+    1544:	01d383b3          	add	t2,t2,t4
+    1548:	01c383b3          	add	t2,t2,t3
+    154c:	fff38393          	addi	t2,t2,-1
+    1550:	00598e33          	add	t3,s3,t0
+    1554:	007e0023          	sb	t2,0(t3)
+    1558:	00128293          	addi	t0,t0,1
+    155c:	01030313          	addi	t1,t1,16
+    1560:	fd5ff06f          	jal	zero,1534 <asm_search+0x270>
+    1564:	001a9293          	slli	t0,s5,0x1
+    1568:	015282b3          	add	t0,t0,s5
+    156c:	016282b3          	add	t0,t0,s6
+    1570:	fff28293          	addi	t0,t0,-1
+    1574:	01498333          	add	t1,s3,s4
+    1578:	00530023          	sb	t0,0(t1)
+    157c:	001a0513          	addi	a0,s4,1
+    1580:	0b012403          	lw	s0,176(sp)
+    1584:	0b412483          	lw	s1,180(sp)
+    1588:	0b812903          	lw	s2,184(sp)
+    158c:	0bc12983          	lw	s3,188(sp)
+    1590:	0c012a03          	lw	s4,192(sp)
+    1594:	0c412a83          	lw	s5,196(sp)
+    1598:	0c812b03          	lw	s6,200(sp)
+    159c:	0cc12b83          	lw	s7,204(sp)
+    15a0:	0d012c03          	lw	s8,208(sp)
+    15a4:	0d412c83          	lw	s9,212(sp)
+    15a8:	0d812d03          	lw	s10,216(sp)
+    15ac:	0dc12d83          	lw	s11,220(sp)
+    15b0:	0e012083          	lw	ra,224(sp)
+    15b4:	0f010113          	addi	sp,sp,240
+    15b8:	00008067          	jalr	zero,0(ra)
+
+000015bc <asm_solve>:
+    15bc:	fe010113          	addi	sp,sp,-32
+    15c0:	00112e23          	sw	ra,28(sp)
+    15c4:	00812c23          	sw	s0,24(sp)
+    15c8:	00912a23          	sw	s1,20(sp)
+    15cc:	01212823          	sw	s2,16(sp)
+    15d0:	01312623          	sw	s3,12(sp)
+    15d4:	00058413          	addi	s0,a1,0
+    15d8:	00000097          	auipc	ra,0x0
+    15dc:	c2c080e7          	jalr	ra,-980(ra) # 1204 <asm_coordinates>
+    15e0:	00050493          	addi	s1,a0,0
+    15e4:	00058913          	addi	s2,a1,0
+    15e8:	00000593          	addi	a1,zero,0
+    15ec:	00000097          	auipc	ra,0x0
+    15f0:	c88080e7          	jalr	ra,-888(ra) # 1274 <asm_coordinate_distance>
+    15f4:	00050993          	addi	s3,a0,0
+    15f8:	00090513          	addi	a0,s2,0
+    15fc:	00100593          	addi	a1,zero,1
+    1600:	00000097          	auipc	ra,0x0
+    1604:	c74080e7          	jalr	ra,-908(ra) # 1274 <asm_coordinate_distance>
+    1608:	00a9f463          	bgeu	s3,a0,1610 <asm_solve+0x54>
+    160c:	00050993          	addi	s3,a0,0
+    1610:	02098863          	beq	s3,zero,1640 <asm_solve+0x84>
+    1614:	00b00293          	addi	t0,zero,11
+    1618:	0332e863          	bltu	t0,s3,1648 <asm_solve+0x8c>
+    161c:	00048513          	addi	a0,s1,0
+    1620:	00090593          	addi	a1,s2,0
+    1624:	00098613          	addi	a2,s3,0
+    1628:	00040693          	addi	a3,s0,0
+    162c:	00000097          	auipc	ra,0x0
+    1630:	c98080e7          	jalr	ra,-872(ra) # 12c4 <asm_search>
+    1634:	00055c63          	bge	a0,zero,164c <asm_solve+0x90>
+    1638:	40a009b3          	sub	s3,zero,a0
+    163c:	fd9ff06f          	jal	zero,1614 <asm_solve+0x58>
+    1640:	00000513          	addi	a0,zero,0
+    1644:	0080006f          	jal	zero,164c <asm_solve+0x90>
+    1648:	fff00513          	addi	a0,zero,-1
+    164c:	00c12983          	lw	s3,12(sp)
+    1650:	01012903          	lw	s2,16(sp)
+    1654:	01412483          	lw	s1,20(sp)
+    1658:	01812403          	lw	s0,24(sp)
+    165c:	01c12083          	lw	ra,28(sp)
+    1660:	02010113          	addi	sp,sp,32
+    1664:	00008067          	jalr	zero,0(ra)

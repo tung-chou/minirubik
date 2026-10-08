@@ -1,0 +1,34 @@
+{
+  "status": "PASS",
+  "processor": "RV32_5S",
+  "isa": "RV32I",
+  "count": 22,
+  "shallow": false,
+  "smoke": true,
+  "all_distance11": false,
+  "sections": {
+    ".rodata": 84749,
+    ".data": 32,
+    ".bss": 11
+  },
+  "static_bytes": 84792,
+  "text_bytes": 1812,
+  "ripes_version": "v2.2.6-106-g5b8a616",
+  "elf_sha256": "6f6e29d48995a78a2f24ec21feb1012d21627a2d493365b1141f8af6ef6a4f7f",
+  "assembly_sha256": "847dd65a1d1a66c88987317bdb4761494a39a8f1e9b1908c1d46531aa43d995f",
+  "ripes_sha256": "0587b4cc7e94a2d0e32dc0084b107eef62ef5bae623be41e88c3d5fb79b216a0",
+  "oracle_sha256": null,
+  "command": [
+    "rv32/check_asm.py",
+    "--smoke",
+    "--proc",
+    "RV32_5S",
+    "--ripes",
+    "/tmp/minirubik-ripes/squashfs-root/AppRun",
+    "--xvfb",
+    "/tmp/minirubik-ripes/Xvfb",
+    "--xvfb-library-dir",
+    "/tmp/minirubik-toolchain/usr/lib/x86_64-linux-gnu"
+  ],
+  "instruction_counts": "include parsing and solution printing"
+}

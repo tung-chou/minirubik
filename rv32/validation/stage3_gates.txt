@@ -1,0 +1,41 @@
+make: Entering directory '/home/unijoy/Computer_Architecture/minirubik/tests'
+./verify_h1 exact_distances.bin
+Oracle certified: all 3674160 states, all 9 moves per state
+H1 PASS: checked=3674160 admissible=3674160 violations=0 max_h=8
+./verify_h2 exact_distances.bin
+H2 coordinate_turn PASS: populated=2520/2520 max=78643 expected_max=78643 mismatches=0; solved rows A=0/B=435 included
+H2 orientation_add PASS: populated=6561/6561 max=80 expected_max=80 solved_entry=0 mismatches=0
+H2 PDB A PASS: populated=68040/68040 max=8 expected_max=8 solved_rank=0 solved_value=0 zero_entries=1
+H2 PDB B PASS: populated=68040/68040 max=8 expected_max=8 solved_rank=35235 solved_value=0 zero_entries=1
+H2 exact-distance oracle PASS: populated=3674160/3674160 max=11 expected_max=11 solved_rank=0 solved_value=0
+H2 PASS: tables=5 failures=0
+./verify_h4
+H4 PDB A even PASS: checked=34020 mismatches=0
+H4 PDB A odd PASS: checked=34020 mismatches=0
+H4 PDB B even PASS: checked=34020 mismatches=0
+H4 PDB B odd PASS: checked=34020 mismatches=0
+H4 PASS: checked=136080 mismatches=0
+./verify_h3 exact_distances.bin
+Packed PDBs certified: 2 x 68040 abstract states
+Oracle certified: all 3674160 states, all 9 moves per state
+Checking IDA* ranks [0, 3674160)
+Checked 588885/3674160; mismatches=0; next rank=588885
+Checked 1257146/3674160; mismatches=0; next rank=1257146
+Checked 1916992/3674160; mismatches=0; next rank=1916992
+Checked 2582831/3674160; mismatches=0; next rank=2582831
+Checked 3228779/3674160; mismatches=0; next rank=3228779
+Checked 3674160/3674160; mismatches=0; next rank=3674160
+FULL PASS: checked=3674160/3674160 matched=3674160 mismatches=0 ranks=[0,3674160)
+distance  0: checked=1 mismatches=0
+distance  1: checked=9 mismatches=0
+distance  2: checked=54 mismatches=0
+distance  3: checked=321 mismatches=0
+distance  4: checked=1847 mismatches=0
+distance  5: checked=9992 mismatches=0
+distance  6: checked=50136 mismatches=0
+distance  7: checked=227536 mismatches=0
+distance  8: checked=870072 mismatches=0
+distance  9: checked=1887748 mismatches=0
+distance 10: checked=623800 mismatches=0
+distance 11: checked=2644 mismatches=0
+make: Leaving directory '/home/unijoy/Computer_Architecture/minirubik/tests'

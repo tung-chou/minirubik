@@ -1,0 +1,8 @@
+# Rebuildable tables, host exporter, ELF/object files and working disassembly.
+/build/
+
+# Fresh runs and debug output. Curated validation/ evidence must remain visible.
+/results/
+
+# Python interpreter caches.
+/__pycache__/

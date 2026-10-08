@@ -1,13 +1,19 @@
 .frama-c/
 .frama-c-mcp/
 *.swp
-solver
-mini
-ida_solver
-IDDFS_solver
-generate_pdb
-pdb_a.bin
-pdb_b.bin
-pdb_data.h
-pdb_data.h.tmp
+
+# Host executables and deterministic tables generated at the repository root.
+/solver
+/mini
+/ida_solver
+/IDDFS_solver
+/generate_pdb
+/pdb_a.bin
+/pdb_b.bin
+/pdb_data.h
+/pdb_data.h.tmp
+
+# Python interpreter caches; source scripts and archived reports stay visible.
+__pycache__/
+
 optimize.md

@@ -1,0 +1,6 @@
+Recorded stdout from `make check-ida` during the Phase 0/1 baseline:
+
+pdb_a.bin: all 68040 packed distances match independent BFS
+pdb_b.bin: all 68040 packed distances match independent BFS
+Offline PDB regeneration is deterministic; packing and goal indices passed
+IDA*: 385 shallow states and 8 optimal vectors passed; invalid input, self-test and output errors passed
